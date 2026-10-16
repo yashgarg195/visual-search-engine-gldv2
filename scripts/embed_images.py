@@ -7,6 +7,7 @@ progress in a global manifest to guarantee safe resumption without duplication.
 """
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -73,8 +74,22 @@ def main():
         return 1
 
     df_meta = pd.read_parquet(parquet_path)
-    # Filter to existing images only
-    if "exists" in df_meta.columns:
+
+    # Fast filesystem scan of images that actually exist on disk in the split directory
+    split_dir = cfg.image_dir / args.split
+    if split_dir.is_dir():
+        logger.info("Scanning %s for downloaded image files...", split_dir)
+        existing_ids = set()
+        for root, _, files in os.walk(split_dir):
+            for f in files:
+                if f.endswith(".jpg"):
+                    existing_ids.add(f[:-4])
+        logger.info("Found %d image files on disk in %s.", len(existing_ids), split_dir)
+        if existing_ids:
+            df_meta = df_meta[df_meta["image_id"].isin(existing_ids)].copy()
+        elif "exists" in df_meta.columns:
+            df_meta = df_meta[df_meta["exists"] == True].copy()
+    elif "exists" in df_meta.columns:
         df_meta = df_meta[df_meta["exists"] == True].copy()
 
     if len(df_meta) == 0:
