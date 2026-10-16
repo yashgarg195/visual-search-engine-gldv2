@@ -32,42 +32,64 @@ class LandmarkLookupTable:
             raise FileNotFoundError(f"Parquet metadata file not found: {parquet_path}")
 
         df = pd.read_parquet(parquet_path)
-        loaded = 0
+        total_rows = len(df)
 
-        for _, row in df.iterrows():
-            split = str(row.get("split", "train")).strip().lower()
-            lid = str(row.get("landmark_id", "")).strip()
-            iid = str(row.get("image_id", "")).strip()
+        # 1. Fast vectorized landmark info population (deduplicate landmarks first)
+        landmark_cols = [
+            c
+            for c in [
+                "split",
+                "landmark_id",
+                "landmark_name",
+                "is_resolved",
+                "category_url",
+                "hierarchical_label",
+                "supercategory",
+                "natural_or_human_made",
+            ]
+            if c in df.columns
+        ]
+        df_unique_landmarks = df[landmark_cols].drop_duplicates(subset=["split", "landmark_id"])
 
+        for r in df_unique_landmarks.to_dict(orient="records"):
+            split = str(r.get("split", "train")).strip().lower()
+            lid = str(r.get("landmark_id", "")).strip()
             key = (split, lid)
             if key not in self._landmark_cache:
-                info = LandmarkInfo(
+                self._landmark_cache[key] = LandmarkInfo(
                     split=split,
                     landmark_id=lid,
-                    landmark_name=str(row.get("landmark_name", f"Landmark #{lid}")),
-                    is_resolved=bool(row.get("is_resolved", False)),
-                    category_url=row.get("category_url"),
-                    hierarchical_label=row.get("hierarchical_label"),
-                    supercategory=row.get("supercategory"),
-                    natural_or_human_made=row.get("natural_or_human_made"),
+                    landmark_name=str(r.get("landmark_name", f"Landmark #{lid}")),
+                    is_resolved=bool(r.get("is_resolved", False)),
+                    category_url=r.get("category_url"),
+                    hierarchical_label=r.get("hierarchical_label"),
+                    supercategory=r.get("supercategory"),
+                    natural_or_human_made=r.get("natural_or_human_made"),
                 )
-                self._landmark_cache[key] = info
 
-            if iid:
-                self._image_cache[iid] = {
-                    "image_id": iid,
-                    "split": split,
-                    "landmark_id": lid,
-                    "full_path": str(row.get("full_path", "")),
-                    "relative_path": str(row.get("relative_path", "")),
-                    "landmark_name": str(row.get("landmark_name", "")),
-                    "is_resolved": bool(row.get("is_resolved", False)),
-                    "category_url": row.get("category_url"),
-                }
-            loaded += 1
+        # 2. Fast image cache population (for datasets under 100k records, e.g. tests or small subsets)
+        if total_rows <= 100_000 and "image_id" in df.columns:
+            for r in df.to_dict(orient="records"):
+                iid = str(r.get("image_id", "")).strip()
+                if iid:
+                    self._image_cache[iid] = {
+                        "image_id": iid,
+                        "split": str(r.get("split", "train")).strip().lower(),
+                        "landmark_id": str(r.get("landmark_id", "")).strip(),
+                        "full_path": str(r.get("full_path", "")),
+                        "relative_path": str(r.get("relative_path", "")),
+                        "landmark_name": str(r.get("landmark_name", "")),
+                        "is_resolved": bool(r.get("is_resolved", False)),
+                        "category_url": r.get("category_url"),
+                    }
 
-        logger.info("Loaded %d records into lookup table from %s", loaded, parquet_path.name)
-        return loaded
+        logger.info(
+            "Loaded metadata for %d unique landmarks (%d total records) from %s",
+            len(df_unique_landmarks),
+            total_rows,
+            parquet_path.name,
+        )
+        return total_rows
 
     def register_coordinates(
         self,
