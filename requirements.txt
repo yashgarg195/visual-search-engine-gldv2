@@ -1,0 +1,15 @@
+# Core Numerical and Data Processing
+numpy>=1.24.0,<3.0.0
+pandas>=2.0.0
+pyarrow>=12.0.0
+pillow>=9.5.0
+tqdm>=4.65.0
+pyyaml>=6.0.0
+
+# Deep Learning & Embeddings
+torch>=2.0.0
+torchvision>=0.15.0
+open_clip_torch>=2.20.0
+
+# Vector Search (Use faiss-cpu for CPU-only or macOS; on CUDA Linux use faiss-gpu or faiss-cpu)
+faiss-cpu>=1.7.4
