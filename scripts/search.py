@@ -82,6 +82,7 @@ def main():
     mapping_lookup = df_mapping.set_index("faiss_id").to_dict(orient="index")
 
     # 3. Load landmark metadata lookup table
+    logger.info("Loading landmark metadata lookup table...")
     lookup = LandmarkLookupTable()
     for split in ["train", "index"]:
         meta_p = cfg.processed_dir / f"metadata_{split}.parquet"
@@ -89,6 +90,7 @@ def main():
             lookup.load_from_parquet(meta_p)
 
     # 4. Initialize CLIP encoder
+    logger.info("Initializing CLIP model (%s on %s)...", cfg.clip_model_name, args.device or cfg.device)
     encoder = CLIPEncoder(
         model_name=cfg.clip_model_name,
         pretrained=args.pretrained or cfg.clip_pretrained,
@@ -102,11 +104,13 @@ def main():
         if not query_path.is_file():
             logger.error("Query image not found: %s", query_path)
             return 1
+        logger.info("Encoding query image: %s...", query_path.name)
         with Image.open(query_path) as img:
             rgb_img = img.convert("RGB")
             query_emb = encoder.encode_pil_images([rgb_img])[0]
         query_desc = f"Image: {query_path.name}"
     else:
+        logger.info("Encoding query text: '%s'...", args.query_text)
         query_emb = encoder.encode_text(args.query_text)
         query_desc = f"Text prompt: '{args.query_text}'"
 
@@ -114,6 +118,7 @@ def main():
 
     # 6. Search IVF-PQ index
     search_k = args.rerank_candidates if args.rerank else (args.top_k + 5)
+    logger.info("Querying FAISS IVF-PQ index (top_k=%d, nprobe=%d)...", search_k, args.nprobe)
     search_start = time.time()
     scores, faiss_ids = index.search(query_emb.reshape(1, -1), top_k=search_k)
     search_time = time.time() - search_start
@@ -160,7 +165,12 @@ def main():
             "is_resolved": landmark_info.is_resolved,
             "category_url": landmark_info.category_url,
             "hierarchical_label": landmark_info.hierarchical_label,
-            "image_path": image_info.get("full_path", ""),
+            "image_path": image_info.get("full_path")
+            or (
+                str(cfg.image_dir / split / img_id[0] / img_id[1] / img_id[2] / f"{img_id}.jpg")
+                if len(img_id) >= 3
+                else ""
+            ),
         }
         retrieved_matches.append(match_data)
         rank += 1
