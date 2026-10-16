@@ -42,6 +42,7 @@ def main():
     parser.add_argument("--nprobe", type=int, default=16, help="Number of IVF Voronoi cells to probe at query time")
     parser.add_argument("--rerank", action="store_true", help="Perform two-stage exact reranking on candidates")
     parser.add_argument("--rerank-candidates", type=int, default=50, help="Candidate pool size for two-stage rerank")
+    parser.add_argument("--device", type=str, default=None, help="Device to use ('auto', 'cuda', 'mps', 'cpu')")
     parser.add_argument("--pretrained", type=str, default=None, help="Pretrained weights tag (e.g. openai, none)")
     parser.add_argument("--exclude-image-id", type=str, default=None, help="Exclude specific image ID from results")
     parser.add_argument("--output-csv", type=str, default=None, help="Save search results to CSV file")
@@ -91,7 +92,7 @@ def main():
     encoder = CLIPEncoder(
         model_name=cfg.clip_model_name,
         pretrained=args.pretrained or cfg.clip_pretrained,
-        device=cfg.device,
+        device=args.device or cfg.device,
     )
 
     # 5. Generate query embedding
