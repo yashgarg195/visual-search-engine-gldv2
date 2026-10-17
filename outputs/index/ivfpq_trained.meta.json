@@ -1,0 +1,21 @@
+{
+  "d": 512,
+  "nlist": 4096,
+  "m": 64,
+  "nbits": 8,
+  "nprobe": 16,
+  "metric": "METRIC_INNER_PRODUCT",
+  "total_vectors": 0,
+  "is_trained": true,
+  "train_stats": {
+    "d": 512,
+    "nlist": 4096,
+    "m": 64,
+    "nbits": 8,
+    "metric": "METRIC_INNER_PRODUCT",
+    "training_sample_size": 100000,
+    "train_time_seconds": 22.67,
+    "timestamp": "2026-10-17T09:33:32Z"
+  },
+  "index_size_bytes": 8913121
+}

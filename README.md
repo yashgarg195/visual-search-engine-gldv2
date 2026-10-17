@@ -246,14 +246,37 @@ Rank  Score    Landmark Name                    Landmark ID    Image ID       Sp
 ==========================================================================================
 ```
 
-### 7. Benchmark Evaluation (Recall, Accuracy, Latency Sweep)
+### 7. Prebuilt Index & Asset Downloads (GitHub Releases)
+To quickly run visual searches without re-embedding 5 million images from scratch:
+```bash
+python3 scripts/download_release_assets.py
+```
+This fetches the populated 5.05M-vector IVF-PQ index (`ivfpq_populated.index`, 394 MB) and ID mapping (`id_mapping.parquet`, 122 MB) directly from the project's [GitHub Releases (v1.0.0)](https://github.com/yashgarg195/visual-search-engine-gldv2/releases/tag/v1.0.0).
+
+### 8. Benchmark Evaluation (Recall, Accuracy, Latency Sweep)
 ```bash
 python3 scripts/evaluate.py \
     --num-queries 100 \
     --nprobe-sweep 1 4 8 16 32 64
 ```
 
-### 8. Landmark Metadata Lookup CLI
+### 9. Stage-2 Local Feature Matching & Geometric Verification
+For high-precision instance-level landmark matching, an optional, decoupled Stage-2 reranker is included in `src/reranking/`:
+- **Detectors**: High-contrast SIFT (default) or ORB local keypoint detection.
+- **Matching & Filtering**: FLANN-based Lowe's 2-NN ratio test (ratio threshold 0.75).
+- **Geometric Transformation**: Modern `USAC_MAGSAC` robust homography estimation between candidate and query images.
+- **Inlier & Dispersion Analysis**: Validates minimum inlier support ($\ge 12$) and calculates spatial dispersion entropy across a $4 \times 4$ normalized coordinate grid to reject false-positive localized cluster matches (e.g. repeated watermark or texture artifacts).
+- **Multiplicative Scoring & Zero Disruption**: Ranks verified candidates with a multiplicative confidence boost while keeping coarse search sub-200 ms. If `src/reranking/` is uninstalled or removed, the engine gracefully falls back to coarse search with zero errors.
+
+Run an image search with Stage-2 Geometric Verification enabled:
+```bash
+python3 scripts/search.py \
+    --query-image path/to/query.jpg \
+    --geometric-rerank \
+    --top-k 10
+```
+
+### 10. Landmark Metadata Lookup CLI
 ```bash
 python3 scripts/lookup_landmark.py --landmark-id 1001 --split train
 python3 scripts/lookup_landmark.py --category-url "http://commons.wikimedia.org/wiki/Category:%C3%89cole_Militaire"
@@ -267,7 +290,7 @@ Run the complete test suite:
 ```bash
 pytest tests/ -v
 ```
-All 14 unit and integration tests validate URL decoding, split preservation, atomic shard writes, index parameter bounds, similarity-weighted voting, and end-to-end integration.
+All 19 unit and integration tests validate URL decoding, split preservation, atomic shard writes, index parameter bounds, similarity-weighted voting, geometric verification, homography estimation, and end-to-end integration.
 
 ---
 
@@ -283,3 +306,4 @@ All 14 unit and integration tests validate URL decoding, split preservation, ato
   > 1. Store dataset tar archives in a regional GCS bucket (`gs://your-gldv2-bucket/`).
   > 2. Use `gcloud storage rsync` or `gsutil -m cp` to copy chunks to the local persistent SSD.
   > 3. Run `scripts/embed_images.py` at full NVMe SSD read speeds.
+

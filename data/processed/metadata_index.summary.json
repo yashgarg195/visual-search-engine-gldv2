@@ -1,0 +1,10 @@
+{
+  "split": "index",
+  "total_records": 761757,
+  "duplicates_removed": 0,
+  "existing_images": 761757,
+  "missing_images": 0,
+  "resolved_landmark_names": 761757,
+  "unique_landmarks": 101302,
+  "output_parquet": "data/processed/metadata_index.parquet"
+}

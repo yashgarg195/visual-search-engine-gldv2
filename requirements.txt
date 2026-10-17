@@ -13,3 +13,6 @@ open_clip_torch>=2.20.0
 
 # Vector Search (Use faiss-cpu for CPU-only or macOS; on CUDA Linux use faiss-gpu or faiss-cpu)
 faiss-cpu>=1.7.4
+
+# Feature Matching & Geometric Verification (Optional Stage 2 Reranking)
+opencv-python-headless>=4.8.0

@@ -1,0 +1,10 @@
+{
+  "split": "test",
+  "total_records": 117577,
+  "duplicates_removed": 0,
+  "existing_images": 117577,
+  "missing_images": 0,
+  "resolved_landmark_names": 1972,
+  "unique_landmarks": 774,
+  "output_parquet": "data/processed/metadata_test.parquet"
+}

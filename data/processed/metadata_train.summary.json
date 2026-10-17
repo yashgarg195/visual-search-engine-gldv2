@@ -1,0 +1,10 @@
+{
+  "split": "train",
+  "total_records": 300,
+  "duplicates_removed": 0,
+  "existing_images": 300,
+  "missing_images": 0,
+  "resolved_landmark_names": 300,
+  "unique_landmarks": 5,
+  "output_parquet": "data/processed/metadata_train.parquet"
+}
