@@ -27,6 +27,9 @@ METADATA_URLS = {
     "index_landmark_map": "https://s3.amazonaws.com/google-landmark/metadata/index_image_to_landmark.csv",
     "index_category": "https://s3.amazonaws.com/google-landmark/metadata/index_label_to_category.csv",
     "index_hierarchical": "https://s3.amazonaws.com/google-landmark/metadata/index_label_to_hierarchical.csv",
+    "test_images": "https://s3.amazonaws.com/google-landmark/metadata/test.csv",
+    "test_recognition_solution": "https://s3.amazonaws.com/google-landmark/ground_truth/recognition_solution_v2.1.csv",
+    "test_retrieval_solution": "https://s3.amazonaws.com/google-landmark/ground_truth/retrieval_solution_v2.1.csv",
 }
 
 
@@ -68,6 +71,8 @@ def ensure_metadata_files(
         required_keys.extend(["train_metadata", "train_category", "train_hierarchical"])
     if "index" in splits:
         required_keys.extend(["index_images", "index_landmark_map", "index_category", "index_hierarchical"])
+    if "test" in splits:
+        required_keys.extend(["test_images", "test_recognition_solution", "test_retrieval_solution", "train_category", "train_hierarchical"])
 
     resolved_paths: Dict[str, Path] = {}
     missing_files: List[Tuple[str, str, Path]] = []
@@ -118,10 +123,10 @@ def prepare_split_metadata(
     sample_limit: Optional[int] = None,
     verify_images: bool = True,
 ) -> Dict[str, Any]:
-    """Process, clean, and validate metadata for a single dataset split (train or index)."""
+    """Process, clean, and validate metadata for a dataset split (train, index, or test)."""
     split = split.lower().strip()
-    if split not in ("train", "index"):
-        raise ValueError(f"Invalid split '{split}'. Expected 'train' or 'index'.")
+    if split not in ("train", "index", "test"):
+        raise ValueError(f"Invalid split '{split}'. Expected 'train', 'index', or 'test'.")
 
     logger.info("Preparing metadata for split: '%s'", split)
 
@@ -140,7 +145,7 @@ def prepare_split_metadata(
         if "id" not in df_images.columns or "landmark_id" not in df_images.columns:
             raise ValueError(f"train.csv missing required columns: {df_images.columns.tolist()}")
 
-    else:  # index split
+    elif split == "index":
         index_file = metadata_dir / "index.csv"
         map_file = metadata_dir / "index_image_to_landmark.csv"
         if not index_file.is_file():
@@ -153,6 +158,30 @@ def prepare_split_metadata(
         else:
             df_images["landmark_id"] = "unknown"
 
+    else:  # test split
+        test_file = metadata_dir / "test.csv"
+        sol_file = metadata_dir / "recognition_solution_v2.1.csv"
+        if not test_file.is_file():
+            raise FileNotFoundError(f"Test images file not found: {test_file}")
+
+        df_images = pd.read_csv(test_file, dtype={"id": str}, nrows=sample_limit)
+        if sol_file.is_file():
+            df_sol = pd.read_csv(sol_file, dtype={"id": str, "landmarks": str, "Usage": str})
+            df_images = df_images.merge(df_sol, on="id", how="left")
+            
+            def _extract_landmark(val):
+                if pd.isna(val):
+                    return ""
+                s = str(val).strip()
+                if not s or s.lower() == "none":
+                    return ""
+                parts = s.split()
+                return parts[0] if parts else ""
+
+            df_images["landmark_id"] = df_images["landmarks"].apply(_extract_landmark)
+        else:
+            df_images["landmark_id"] = ""
+
     initial_count = len(df_images)
     logger.info("Loaded %d raw image records for split '%s'.", initial_count, split)
 
@@ -163,8 +192,9 @@ def prepare_split_metadata(
         logger.warning("Found and removed %d duplicate image IDs in '%s'.", duplicate_count, split)
         df_images = df_images[~duplicates_mask].copy()
 
-    # 3. Load category mappings
-    cat_file = metadata_dir / f"{split}_label_to_category.csv"
+    # 3. Load category mappings (test split refers to train labels)
+    cat_split = "train" if split == "test" else split
+    cat_file = metadata_dir / f"{cat_split}_label_to_category.csv"
     category_map: Dict[str, str] = {}
     if cat_file.is_file():
         df_cat = pd.read_csv(cat_file, dtype={"landmark_id": str, "category": str})
@@ -173,8 +203,8 @@ def prepare_split_metadata(
     else:
         logger.warning("Category file %s not found. Landmark names will be extracted from fallback.", cat_file.name)
 
-    # 4. Load hierarchical mappings
-    hier_file = metadata_dir / f"{split}_label_to_hierarchical.csv"
+    # 4. Load hierarchical mappings (test split refers to train labels)
+    hier_file = metadata_dir / f"{cat_split}_label_to_hierarchical.csv"
     hier_map: Dict[str, Dict[str, str]] = {}
     if hier_file.is_file():
         df_hier = pd.read_csv(hier_file, dtype=str)

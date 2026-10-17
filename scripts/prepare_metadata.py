@@ -30,7 +30,7 @@ def main():
         "--splits",
         nargs="+",
         default=["train", "index"],
-        choices=["train", "index"],
+        choices=["train", "index", "test"],
         help="Dataset splits to process",
     )
     parser.add_argument("--sample-limit", type=int, default=None, help="Process only the first N records for testing")
