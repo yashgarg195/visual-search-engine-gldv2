@@ -44,6 +44,21 @@ class EmbeddingStore:
             "checkpoint_status": "in_progress",
         }
 
+    @property
+    def total_vectors(self) -> int:
+        """Total number of vectors indexed across all shards."""
+        return self._manifest.get("total_vectors", 0)
+
+    @property
+    def total_shards(self) -> int:
+        """Total number of persistent shards."""
+        return len(self._manifest.get("shards", []))
+
+    @property
+    def manifest(self) -> Dict[str, Any]:
+        """Underlying manifest dictionary."""
+        return self._manifest
+
     def save_manifest(self) -> None:
         """Persist manifest atomically."""
         atomic_save_json(self._manifest, self.manifest_path)

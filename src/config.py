@@ -55,7 +55,7 @@ class PipelineConfig:
 
     # FAISS IVF-PQ Index settings
     faiss_nlist: int = field(default_factory=lambda: int(os.getenv("FAISS_NLIST", "1024")))
-    faiss_nprobe: int = field(default_factory=lambda: int(os.getenv("FAISS_NPROBE", "16")))
+    faiss_nprobe: int = field(default_factory=lambda: int(os.getenv("FAISS_NPROBE", "64")))
     faiss_m: int = field(default_factory=lambda: int(os.getenv("FAISS_M", "64")))
     faiss_nbits: int = field(default_factory=lambda: int(os.getenv("FAISS_NBITS", "8")))
     faiss_train_sample_size: int = field(

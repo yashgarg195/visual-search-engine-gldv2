@@ -62,7 +62,9 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 class TextSearchRequest(BaseModel):
     query: str = Field(..., min_length=1, description="Natural language prompt describing the landmark")
     top_k: int = Field(10, ge=1, le=100, description="Number of results to retrieve")
-    nprobe: int = Field(32, ge=1, le=256, description="Number of IVF Voronoi clusters to probe")
+    nprobe: int = Field(64, ge=1, le=256, description="Number of IVF Voronoi clusters to probe")
+    index_type: str = Field("ivfpq", description="Vector index algorithm: 'ivfpq' or 'hnswpq'")
+    ef_search: int = Field(64, ge=1, le=512, description="Exploration depth for HNSW graph search")
     rerank: bool = Field(False, description="Whether to apply two-stage exact re-ranking")
 
 
@@ -97,6 +99,8 @@ async def search_by_text(req: TextSearchRequest):
             query_text=req.query,
             top_k=req.top_k,
             nprobe=req.nprobe,
+            index_type=req.index_type,
+            ef_search=req.ef_search,
             rerank=req.rerank,
         )
         return results
@@ -109,7 +113,9 @@ async def search_by_text(req: TextSearchRequest):
 async def search_by_image(
     file: UploadFile = File(...),
     top_k: int = Form(10),
-    nprobe: int = Form(32),
+    nprobe: int = Form(64),
+    index_type: str = Form("ivfpq"),
+    ef_search: int = Form(64),
     rerank: bool = Form(False),
     rerank_geometric: bool = Form(False),
 ):
@@ -134,6 +140,8 @@ async def search_by_image(
             filename=file.filename or "upload.jpg",
             top_k=top_k,
             nprobe=nprobe,
+            index_type=index_type,
+            ef_search=ef_search,
             rerank=rerank,
             rerank_geometric=rerank_geometric,
         )

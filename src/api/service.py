@@ -10,6 +10,7 @@ from PIL import Image
 
 from src.config import get_config
 from src.index.ivfpq import IVFPQIndex
+from src.index.hnsw_pq import HNSWPQIndex
 from src.index.rerank import TwoStageReranker
 from src.index.voting import compute_similarity_weighted_votes
 from src.metadata.lookup import LandmarkLookupTable
@@ -31,6 +32,8 @@ class SearchEngineService:
     def __init__(self, env_file: Optional[str] = None):
         self.cfg = get_config(env_file)
         self.encoder: Optional[CLIPEncoder] = None
+        self.index_ivf: Optional[IVFPQIndex] = None
+        self.index_hnsw: Optional[HNSWPQIndex] = None
         self.index: Optional[IVFPQIndex] = None
         self.mapping_lookup: Dict[int, Dict[str, Any]] = {}
         self.df_mapping: Optional[pd.DataFrame] = None
@@ -38,7 +41,7 @@ class SearchEngineService:
         self.is_ready = False
 
     def initialize(self):
-        """Load OpenCLIP, FAISS index, and lookup tables into memory once."""
+        """Load OpenCLIP, FAISS indices, and lookup tables into memory once."""
         if self.is_ready:
             return
 
@@ -57,13 +60,17 @@ class SearchEngineService:
         if not index_path.is_file():
             index_path = self.cfg.index_dir / "ivfpq_trained.index"
 
-        if not index_path.is_file():
-            raise FileNotFoundError(f"FAISS index file not found in {self.cfg.index_dir}")
+        if index_path.is_file():
+            logger.info("Loading FAISS IVF-PQ index from %s...", index_path)
+            self.index_ivf = IVFPQIndex()
+            self.index_ivf.load(index_path)
+            self.index_ivf.set_nprobe(self.cfg.faiss_nprobe)
+            self.index = self.index_ivf
+        else:
+            logger.warning("FAISS IVF-PQ index file not found in %s", self.cfg.index_dir)
 
-        logger.info("Loading FAISS index from %s...", index_path)
-        self.index = IVFPQIndex()
-        self.index.load(index_path)
-        self.index.set_nprobe(self.cfg.faiss_nprobe)
+        # 2b. Load FAISS HNSW-PQ Index if available
+        self._ensure_hnsw_loaded()
 
         # 3. Load ID Mapping Table
         mapping_path = self.cfg.index_dir / "id_mapping.parquet"
@@ -84,19 +91,51 @@ class SearchEngineService:
 
         self.is_ready = True
         logger.info(
-            "Search Engine Service successfully initialized! Total indexed vectors: %d",
-            self.index.total_vectors if self.index else 0,
+            "Search Engine Service successfully initialized! Total IVF vectors: %d | Total HNSW vectors: %d",
+            self.index_ivf.total_vectors if self.index_ivf else 0,
+            self.index_hnsw.total_vectors if self.index_hnsw else 0,
         )
+
+    def _ensure_hnsw_loaded(self) -> bool:
+        """Dynamically load HNSW-PQ index if available."""
+        if self.index_hnsw is not None:
+            return True
+        hnsw_path = self.cfg.index_dir / "hnswpq_populated.index"
+        if hnsw_path.is_file():
+            try:
+                logger.info("Loading FAISS HNSW-PQ index from %s...", hnsw_path)
+                self.index_hnsw = HNSWPQIndex()
+                self.index_hnsw.load(hnsw_path)
+                self.index_hnsw.set_ef_search(64)
+                logger.info("Loaded HNSW-PQ index with %d vectors", self.index_hnsw.total_vectors)
+                return True
+            except Exception as e:
+                logger.warning("Failed to load HNSW-PQ index from %s: %s", hnsw_path, e)
+        return False
 
     def get_info(self) -> Dict[str, Any]:
         """Return system stats and index info."""
+        self._ensure_hnsw_loaded()
+        available_indices = []
+        if self.index_ivf is not None:
+            available_indices.append("ivfpq")
+        if self.index_hnsw is not None:
+            available_indices.append("hnswpq")
+
+        total_vecs = self.index_ivf.total_vectors if self.index_ivf else (self.index_hnsw.total_vectors if self.index_hnsw else 0)
+
         return {
             "model_name": self.cfg.clip_model_name,
             "pretrained": self.cfg.clip_pretrained,
             "embedding_dim": self.encoder.embedding_dim if self.encoder else self.cfg.embedding_dim,
             "device": str(self.encoder.device) if self.encoder else "unknown",
-            "total_vectors": self.index.total_vectors if self.index else 0,
+            "total_vectors": total_vecs,
+            "ivf_vectors": self.index_ivf.total_vectors if self.index_ivf else 0,
+            "hnsw_vectors": self.index_hnsw.total_vectors if self.index_hnsw else 0,
+            "available_indices": available_indices,
+            "default_index": "ivfpq",
             "default_nprobe": self.cfg.faiss_nprobe,
+            "default_ef_search": 64,
             "default_top_k": 10,
             "is_ready": self.is_ready,
         }
@@ -106,18 +145,32 @@ class SearchEngineService:
         query_emb: np.ndarray,
         query_desc: str,
         top_k: int = 10,
-        nprobe: int = 32,
+        nprobe: int = 64,
+        index_type: str = "ivfpq",
+        ef_search: int = 64,
         rerank: bool = False,
     ) -> Dict[str, Any]:
         """Core search and aggregation routine given a 512-dim normalized embedding."""
-        if not self.is_ready or self.index is None:
+        if not self.is_ready:
             raise RuntimeError("Search service is not initialized.")
 
-        self.index.set_nprobe(nprobe)
+        is_hnsw = "hnsw" in index_type.lower()
+        if is_hnsw:
+            self._ensure_hnsw_loaded()
+            if self.index_hnsw is None:
+                raise RuntimeError("HNSW-PQ index is not available. Please train it first or select IVF-PQ.")
+            active_index = self.index_hnsw
+            active_index.set_ef_search(ef_search or 64)
+        else:
+            if self.index_ivf is None:
+                raise RuntimeError("IVF-PQ index is not initialized.")
+            active_index = self.index_ivf
+            active_index.set_nprobe(nprobe or 64)
+
         search_k = max(top_k + 5, 20)
 
         t_search_start = time.perf_counter()
-        scores, faiss_ids = self.index.search(query_emb.reshape(1, -1), top_k=search_k)
+        scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
         t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
 
         scores = scores[0]
@@ -198,6 +251,8 @@ class SearchEngineService:
             "search_latency_ms": round(t_search_ms, 2),
             "top_k": top_k,
             "nprobe": nprobe,
+            "ef_search": ef_search,
+            "index_type": "hnswpq" if is_hnsw else "ivfpq",
             "voting_summary": voting_summary,
             "matches": retrieved_matches,
         }
@@ -206,7 +261,9 @@ class SearchEngineService:
         self,
         query_text: str,
         top_k: int = 10,
-        nprobe: int = 32,
+        nprobe: int = 64,
+        index_type: str = "ivfpq",
+        ef_search: int = 64,
         rerank: bool = False,
     ) -> Dict[str, Any]:
         """Encode natural language text query and retrieve matching landmarks."""
@@ -222,6 +279,8 @@ class SearchEngineService:
             query_desc=f"Text: '{query_text}'",
             top_k=top_k,
             nprobe=nprobe,
+            index_type=index_type,
+            ef_search=ef_search,
             rerank=rerank,
         )
         res["query_type"] = "text"
@@ -235,7 +294,9 @@ class SearchEngineService:
         image_bytes: bytes,
         filename: str = "uploaded_image.jpg",
         top_k: int = 10,
-        nprobe: int = 32,
+        nprobe: int = 64,
+        index_type: str = "ivfpq",
+        ef_search: int = 64,
         rerank: bool = False,
         rerank_geometric: bool = False,
     ) -> Dict[str, Any]:
@@ -254,6 +315,8 @@ class SearchEngineService:
             query_desc=f"Image: {filename}",
             top_k=top_k,
             nprobe=nprobe,
+            index_type=index_type,
+            ef_search=ef_search,
             rerank=rerank,
         )
 

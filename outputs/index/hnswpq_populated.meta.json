@@ -1,0 +1,11 @@
+{
+  "type": "hnsw_pq",
+  "d": 512,
+  "m": 64,
+  "M": 32,
+  "ef_construction": 64,
+  "ef_search": 64,
+  "metric": "inner_product",
+  "total_vectors": 100000,
+  "is_trained": true
+}

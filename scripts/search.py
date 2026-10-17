@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import get_config
 from src.index.ivfpq import IVFPQIndex
+from src.index.hnsw_pq import HNSWPQIndex
 from src.index.rerank import TwoStageReranker
 from src.index.voting import compute_similarity_weighted_votes
 from src.metadata.lookup import LandmarkLookupTable
@@ -32,14 +33,22 @@ logger = get_logger("search_cli")
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Query the IVF-PQ landmark search index with an image or text prompt.",
+        description="Query the IVF-PQ or HNSW-PQ landmark search index with an image or text prompt.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--env-file", type=str, default=".env", help="Path to .env configuration file")
     parser.add_argument("--query-image", type=str, default=None, help="Path to query image file")
     parser.add_argument("--query-text", type=str, default=None, help="Optional text prompt query")
     parser.add_argument("--top-k", type=int, default=10, help="Number of nearest neighbors to retrieve")
-    parser.add_argument("--nprobe", type=int, default=16, help="Number of IVF Voronoi cells to probe at query time")
+    parser.add_argument(
+        "--index-type",
+        type=str,
+        choices=["ivfpq", "hnswpq"],
+        default="ivfpq",
+        help="Vector index architecture to query ('ivfpq' or 'hnswpq')",
+    )
+    parser.add_argument("--nprobe", type=int, default=64, help="Number of IVF Voronoi cells to probe at query time")
+    parser.add_argument("--ef-search", type=int, default=64, help="Exploration depth for HNSW graph search")
     parser.add_argument("--rerank", action="store_true", help="Perform two-stage exact reranking on candidates")
     parser.add_argument("--rerank-candidates", type=int, default=50, help="Candidate pool size for two-stage rerank")
     parser.add_argument("--geometric-rerank", action="store_true", help="Perform Stage-2 local feature geometric verification")
@@ -56,18 +65,28 @@ def main():
         logger.error("Please provide either --query-image <path> or --query-text '<prompt>'")
         return 1
 
-    # 1. Load FAISS index
-    index_path = cfg.index_dir / "ivfpq_populated.index"
-    if not index_path.is_file():
-        # Fallback to trained index if populated does not exist
-        index_path = cfg.index_dir / "ivfpq_trained.index"
+    # 1. Load FAISS index based on index-type
+    if args.index_type == "hnswpq":
+        index_path = cfg.index_dir / "hnswpq_populated.index"
         if not index_path.is_file():
-            logger.error("FAISS index not found at %s. Please train and populate index first.", index_path)
+            logger.error("HNSW-PQ index not found at %s. Please train index first (scripts/train_hnsw_pq.py).", index_path)
             return 1
+        index = HNSWPQIndex()
+        index.load(index_path)
+        index.set_ef_search(args.ef_search)
+        logger.info("Loaded HNSW-PQ index (%d vectors, efSearch=%d) from %s", index.total_vectors, args.ef_search, index_path)
+    else:
+        index_path = cfg.index_dir / "ivfpq_populated.index"
+        if not index_path.is_file():
+            index_path = cfg.index_dir / "ivfpq_trained.index"
+            if not index_path.is_file():
+                logger.error("FAISS IVF-PQ index not found at %s. Please train and populate index first.", index_path)
+                return 1
 
-    index = IVFPQIndex()
-    index.load(index_path)
-    index.set_nprobe(args.nprobe)
+        index = IVFPQIndex()
+        index.load(index_path)
+        index.set_nprobe(args.nprobe)
+        logger.info("Loaded IVF-PQ index (%d vectors, nprobe=%d) from %s", index.total_vectors, args.nprobe, index_path)
 
     if index.total_vectors == 0:
         logger.error("Index at %s is empty (0 vectors indexed).", index_path)
@@ -117,9 +136,12 @@ def main():
 
     emb_time = time.time() - query_start
 
-    # 6. Search IVF-PQ index
+    # 6. Search FAISS index
     search_k = args.rerank_candidates if args.rerank else (args.top_k + 5)
-    logger.info("Querying FAISS IVF-PQ index (top_k=%d, nprobe=%d)...", search_k, args.nprobe)
+    if args.index_type == "hnswpq":
+        logger.info("Querying FAISS HNSW-PQ index (top_k=%d, efSearch=%d)...", search_k, args.ef_search)
+    else:
+        logger.info("Querying FAISS IVF-PQ index (top_k=%d, nprobe=%d)...", search_k, args.nprobe)
     search_start = time.time()
     scores, faiss_ids = index.search(query_emb.reshape(1, -1), top_k=search_k)
     search_time = time.time() - search_start
@@ -213,7 +235,8 @@ def main():
         timing_str += f", {geom_time * 1000:.2f} ms geometric verification)"
     else:
         timing_str += ")"
-    print(f" IVF-PQ nprobe: {args.nprobe} | {timing_str}")
+    param_info = f"HNSW-PQ efSearch: {args.ef_search}" if args.index_type == "hnswpq" else f"IVF-PQ nprobe: {args.nprobe}"
+    print(f" {param_info} | {timing_str}")
     print("=" * 90)
 
     print(f"\n{'Rank':<5} {'Score':<8} {'Landmark Name':<32} {'Landmark ID':<14} {'Image ID':<14} {'Split'}")

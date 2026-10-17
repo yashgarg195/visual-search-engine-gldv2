@@ -24,7 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const chipButtons = document.querySelectorAll(".chip-btn");
 
   const topKSelect = document.getElementById("topKSelect");
-  const nprobeSelect = document.getElementById("nprobeSelect");
+  const indexTypeSelect = document.getElementById("indexTypeSelect");
+  const tuningParamSelect = document.getElementById("tuningParamSelect");
+  const tuningParamLabel = document.getElementById("tuningParamLabel");
   const searchSubmitBtn = document.getElementById("searchSubmitBtn");
   const btnSpinner = searchSubmitBtn.querySelector(".btn-spinner");
   const btnText = searchSubmitBtn.querySelector(".btn-text");
@@ -72,12 +74,53 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.device) {
           pillDevice.innerHTML = `Device: <strong>${data.device.toUpperCase()}</strong>`;
         }
+        if (data.available_indices && indexTypeSelect) {
+          const ivfCount = data.ivf_vectors ? ` (${(data.ivf_vectors / 1e6).toFixed(2)}M)` : "";
+          const hnswCount = data.hnsw_vectors ? ` (${(data.hnsw_vectors / 1e3).toFixed(0)}k)` : "";
+          const currentVal = indexTypeSelect.value;
+          indexTypeSelect.innerHTML = "";
+          if (data.available_indices.includes("ivfpq")) {
+            const opt = document.createElement("option");
+            opt.value = "ivfpq";
+            opt.textContent = `IVF-PQ Inverted Index${ivfCount}`;
+            if (currentVal === "ivfpq") opt.selected = true;
+            indexTypeSelect.appendChild(opt);
+          }
+          if (data.available_indices.includes("hnswpq")) {
+            const opt = document.createElement("option");
+            opt.value = "hnswpq";
+            opt.textContent = `HNSW-PQ Graph Index${hnswCount}`;
+            if (currentVal === "hnswpq") opt.selected = true;
+            indexTypeSelect.appendChild(opt);
+          }
+        }
       }
     } catch (e) {
       console.warn("Could not fetch system info:", e);
     }
   }
   fetchSystemInfo();
+
+  // Algorithm selection change handler
+  if (indexTypeSelect) {
+    indexTypeSelect.addEventListener("change", () => {
+      const isHnsw = indexTypeSelect.value === "hnswpq";
+      if (tuningParamLabel) {
+        tuningParamLabel.textContent = isHnsw ? "Search Depth (efSearch):" : "Voronoi Probes (nprobe):";
+      }
+      if (tuningParamSelect) {
+        tuningParamSelect.innerHTML = isHnsw
+          ? `<option value="32">32 (Fastest)</option>
+             <option value="64" selected>64 (Balanced)</option>
+             <option value="128">128 (High Recall)</option>
+             <option value="256">256 (Exhaustive)</option>`
+          : `<option value="16">16 (Fastest)</option>
+             <option value="32">32 (Balanced)</option>
+             <option value="64" selected>64 (High Recall)</option>
+             <option value="128">128 (Max Precision)</option>`;
+      }
+    });
+  }
 
   // 2. Tab Navigation
   function switchTab(mode) {
@@ -226,25 +269,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function triggerSearch() {
     const topK = parseInt(topKSelect.value, 10);
-    const nprobe = parseInt(nprobeSelect.value, 10);
+    const indexType = indexTypeSelect ? indexTypeSelect.value : "ivfpq";
+    const tuningVal = parseInt(tuningParamSelect ? tuningParamSelect.value : 64, 10);
+    const nprobe = indexType === "ivfpq" ? tuningVal : 64;
+    const efSearch = indexType === "hnswpq" ? tuningVal : 64;
 
     if (activeTab === "image") {
       if (!selectedFile) {
         showError("Please upload or drag an image first.");
         return;
       }
-      await executeImageSearch(selectedFile, topK, nprobe);
+      await executeImageSearch(selectedFile, topK, nprobe, indexType, efSearch);
     } else {
       const text = textQueryInput.value.trim();
       if (!text) {
         showError("Please enter a landmark text description.");
         return;
       }
-      await executeTextSearch(text, topK, nprobe);
+      await executeTextSearch(text, topK, nprobe, indexType, efSearch);
     }
   }
 
-  async function executeTextSearch(text, topK, nprobe) {
+  async function executeTextSearch(text, topK, nprobe, indexType, efSearch) {
     setLoading(true);
     try {
       const response = await fetch("/api/search/text", {
@@ -254,6 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
           query: text,
           top_k: topK,
           nprobe: nprobe,
+          index_type: indexType,
+          ef_search: efSearch,
           rerank: false,
         }),
       });
@@ -272,11 +320,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function executeImageSearch(file, topK, nprobe) {
+  async function executeImageSearch(file, topK, nprobe, indexType, efSearch) {
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("top_k", topK);
+      formData.append("nprobe", nprobe);
+      formData.append("index_type", indexType);
+      formData.append("ef_search", efSearch);
       const isGeom = document.getElementById("geomCheckbox") ? document.getElementById("geomCheckbox").checked : false;
       formData.append("rerank", "false");
       formData.append("rerank_geometric", isGeom ? "true" : "false");
@@ -306,7 +358,10 @@ document.addEventListener("DOMContentLoaded", () => {
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
     // Metrics
-    queryDesc.textContent = data.query_desc || "Query";
+    const algoBadge = data.index_type === "hnswpq"
+      ? ` [HNSW-PQ, efSearch=${data.ef_search || 64}]`
+      : ` [IVF-PQ, nprobe=${data.nprobe || 64}]`;
+    queryDesc.textContent = (data.query_desc || "Query") + algoBadge;
     metricEmbTime.textContent = `${data.embedding_latency_ms || 0} ms`;
     metricSearchTime.textContent = `${data.search_latency_ms || 0} ms`;
     metricTotalTime.textContent = `${data.total_latency_ms || 0} ms`;

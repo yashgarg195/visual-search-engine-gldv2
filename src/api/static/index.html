@@ -91,6 +91,14 @@
       <!-- Search Controls Bar -->
       <div class="controls-bar">
         <div class="control-group">
+          <label for="indexTypeSelect">Algorithm:</label>
+          <select id="indexTypeSelect" class="form-select">
+            <option value="ivfpq" selected>IVF-PQ (Inverted File)</option>
+            <option value="hnswpq">HNSW-PQ (Graph + PQ)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
           <label for="topKSelect">Top-K Results:</label>
           <select id="topKSelect" class="form-select">
             <option value="5">5 matches</option>
@@ -99,12 +107,13 @@
           </select>
         </div>
 
-        <div class="control-group">
-          <label for="nprobeSelect">Voronoi Probes (nprobe):</label>
-          <select id="nprobeSelect" class="form-select">
+        <div class="control-group" id="tuningParamGroup">
+          <label for="tuningParamSelect" id="tuningParamLabel">Voronoi Probes (nprobe):</label>
+          <select id="tuningParamSelect" class="form-select">
             <option value="16">16 (Fastest)</option>
-            <option value="32" selected>32 (Balanced)</option>
-            <option value="64">64 (Highest Recall)</option>
+            <option value="32">32 (Balanced)</option>
+            <option value="64" selected>64 (High Recall)</option>
+            <option value="128">128 (Max Precision)</option>
           </select>
         </div>
 
