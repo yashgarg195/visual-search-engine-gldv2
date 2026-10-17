@@ -117,7 +117,7 @@ class HNSWPQIndex(BaseVectorIndex):
         t_elapsed = time.perf_counter() - t_start
         logger.info("HNSW-PQ training completed in %.2f seconds.", t_elapsed)
 
-    def add(self, vectors: np.ndarray, ids: np.ndarray) -> None:
+    def add(self, vectors: np.ndarray, ids: np.ndarray, num_threads: int = 4) -> None:
         """Add vectors with explicit 64-bit integer IDs into the HNSW graph."""
         if self._index is None or not self.is_trained:
             raise RuntimeError("Index must be built and trained before adding vectors.")
@@ -135,7 +135,7 @@ class HNSWPQIndex(BaseVectorIndex):
         old_threads = faiss.omp_get_max_threads() if hasattr(faiss, "omp_get_max_threads") else 1
         try:
             if hasattr(faiss, "omp_set_num_threads"):
-                faiss.omp_set_num_threads(1)
+                faiss.omp_set_num_threads(max(1, num_threads))
             self._index.add_with_ids(vectors, ids)
         finally:
             if hasattr(faiss, "omp_set_num_threads"):
@@ -176,6 +176,11 @@ class HNSWPQIndex(BaseVectorIndex):
                 faiss.omp_set_num_threads(old_threads)
 
         return scores, ids
+
+    def reset(self) -> None:
+        """Clear all vectors and reset graph structure while preserving trained codebooks."""
+        if self._index is not None:
+            self._index.reset()
 
     def save(self, index_path: Path) -> None:
         """Persist HNSW-PQ index and metadata to disk."""
