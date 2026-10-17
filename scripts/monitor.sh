@@ -58,23 +58,12 @@ echo ""
 echo "======================================================================"
 echo " STREAMING LIVE LOGS FROM ${VM_NAME} (Ctrl+C anytime to exit)"
 echo "======================================================================"
-# 4. Stream live logs continuously without needing a raw pty terminal
+# 4. Stream live logs continuously (tail -f keeps the stream open until Ctrl+C)
 gcloud compute ssh "${VM_NAME}" --zone="${VM_ZONE}" --tunnel-through-iap --quiet --command="
-SESSION=''
-if tmux has-session -t gldv2_splits 2>/dev/null; then
-    SESSION='gldv2_splits'
-elif tmux has-session -t gldv2_fast 2>/dev/null; then
-    SESSION='gldv2_fast'
-elif tmux has-session -t gldv2 2>/dev/null; then
-    SESSION='gldv2'
-fi
-
-if [[ -n \"\$SESSION\" ]]; then
-    tmux capture-pane -pt \"\${SESSION}:0\" -S -25
-    echo '--- Streaming live output (Ctrl+C to stop) ---'
-    tmux pipe-pane -o -t \"\${SESSION}:0\" 'cat'
-elif [ -f ~/visual-search-engine-gldv2/pipeline.log ]; then
+if [ -f ~/visual-search-engine-gldv2/pipeline.log ]; then
     tail -n 30 -f ~/visual-search-engine-gldv2/pipeline.log
+elif tmux has-session -t gldv2_splits 2>/dev/null; then
+    tmux capture-pane -pt gldv2_splits:0 -S -30
 else
     echo 'Waiting for pipeline process to initialize...'
 fi
