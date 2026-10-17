@@ -277,9 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("top_k", topK);
-      formData.append("nprobe", nprobe);
+      const isGeom = document.getElementById("geomCheckbox") ? document.getElementById("geomCheckbox").checked : false;
       formData.append("rerank", "false");
+      formData.append("rerank_geometric", isGeom ? "true" : "false");
 
       const response = await fetch("/api/search/image", {
         method: "POST",
@@ -351,10 +351,16 @@ document.addEventListener("DOMContentLoaded", () => {
       // Normalize score for progress bar (cosine similarity ~0.20 to ~0.70 mapped to 20%-100%)
       const pct = Math.min(100, Math.max(10, Math.round(m.score * 150)));
 
+      const isVerified = Boolean(m.geometric_verified);
+      const scoreVal = m.final_score !== undefined ? m.final_score : m.score;
+
       card.innerHTML = `
         <div class="match-top">
-          <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
-          <span class="score-display">Sim: ${m.score.toFixed(4)}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
+            ${isVerified ? `<span style="background:#10b981; color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:0.5px;">✓ GEOM MATCH</span>` : ""}
+          </div>
+          <span class="score-display">${isVerified ? "Score" : "Sim"}: ${scoreVal.toFixed(4)}</span>
         </div>
         <div class="score-bar-bg">
           <div class="score-bar-fill" style="width: ${pct}%"></div>
@@ -364,6 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>Landmark ID: <strong>${m.landmark_id}</strong></span>
           <span>Image ID: <strong>${m.image_id}</strong></span>
           <span>Dataset Split: <strong>${m.split}</strong></span>
+          ${isVerified ? `<span>Inliers: <strong>${m.inliers}</strong> (${Math.round((m.inlier_ratio || 0) * 100)}% ratio)</span>` : ""}
           ${m.hierarchical_label && m.hierarchical_label !== "nan" ? `<span>Category: <em>${escapeHtml(m.hierarchical_label)}</em></span>` : ""}
         </div>
         ${

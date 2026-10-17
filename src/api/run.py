@@ -25,7 +25,7 @@ def main():
     print("=" * 75)
     print(f"  Local Address     : http://{args.host}:{args.port}")
     print(f"  Interactive Docs  : http://{args.host}:{args.port}/docs")
-    print(f"  Indexed Database  : 4,173,658 vectors (IVF-PQ)")
+    print(f"  Indexed Database  : 5,052,992 vectors (train, index, test splits)")
     print("=" * 75 + "\n")
 
     uvicorn.run(
