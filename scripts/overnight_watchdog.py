@@ -21,13 +21,13 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Candidate zones with L4 GPUs
 FALLBACK_ZONES = [
-    "asia-southeast1-c",
-    "asia-southeast1-b",
     "asia-northeast1-b",
-    "asia-northeast1-a",
     "asia-northeast1-c",
     "us-central1-a",
     "us-central1-b",
+    "us-central1-c",
+    "asia-southeast1-c",
+    "asia-southeast1-b",
 ]
 
 IMAGE_FAMILY = "ubuntu-pro-accel-2604-amd64-nvidia-595-v20261016"
@@ -55,37 +55,45 @@ def get_active_vm() -> tuple[str, str, str]:
     code, out = run_cmd("gcloud compute instances list --format='csv[no-heading](name,zone,status)'")
     if code != 0 or not out:
         return "", "", ""
+    running_instances = []
+    other_instances = []
     for line in out.splitlines():
         parts = [p.strip() for p in line.split(",") if p.strip()]
-        if len(parts) >= 3 and parts[0].startswith("instance-20261016"):
-            return parts[0], parts[1], parts[2]
+        if len(parts) >= 3 and parts[0].startswith("instance-"):
+            if parts[2] == "RUNNING":
+                running_instances.append((parts[0], parts[1], parts[2]))
+            else:
+                other_instances.append((parts[0], parts[1], parts[2]))
+    if running_instances:
+        # Sort to pick the newest by name timestamp
+        running_instances.sort(key=lambda x: x[0], reverse=True)
+        return running_instances[0]
+    if other_instances:
+        other_instances.sort(key=lambda x: x[0], reverse=True)
+        return other_instances[0]
     return "", "", ""
 
 
 def ensure_pipeline_running(vm_name: str, zone: str) -> bool:
-    """Check if stream_all_chunks is active on the VM; if not, launch it."""
+    """Check if ingestion pipeline is active on the VM; if not, launch it."""
     code, out = run_cmd(
-        f"gcloud compute ssh {vm_name} --zone={zone} --quiet --command='ps aux | grep stream_all_chunks | grep -v grep'",
-        timeout=30,
+        f"gcloud compute ssh {vm_name} --zone={zone} --quiet --command='pgrep -f stream_all_chunks.py || pgrep -f ingest_splits.py'",
+        timeout=25,
     )
-    if code == 0 and "stream_all_chunks.py" in out:
+
+    if code == 0 and out.strip():
         log(f"Pipeline is actively running on {vm_name} ({zone}).")
         return True
 
-    log(f"Pipeline NOT running on {vm_name}. Starting it under nohup...")
+    log(f"Pipeline NOT running on {vm_name}. Starting it under tmux...")
     launch_cmd = (
         f"gcloud compute ssh {vm_name} --zone={zone} --quiet --command=\""
-        f"cd visual-search-engine-gldv2 && "
-        f"nohup .venv/bin/python scripts/stream_all_chunks.py "
-        f"--start-chunk 0 --end-chunk 499 --batch-size 128 --device cuda > pipeline.log 2>&1 & "
-        f"sleep 2 && ps aux | grep stream_all_chunks | grep -v grep\""
+        f"tmux new-session -d -s gldv2_splits 'cd ~/visual-search-engine-gldv2 && "
+        f".venv/bin/python scripts/ingest_splits.py --splits index test --batch-size 256 --num-workers 8 --device cuda'\""
     )
-    code, out = run_cmd(launch_cmd, timeout=45)
-    if code == 0 and "stream_all_chunks.py" in out:
-        log(f"Successfully launched pipeline on {vm_name}.")
-        return True
-    log(f"Warning: Failed to launch pipeline on {vm_name}: {out}")
-    return False
+    code, out = run_cmd(launch_cmd, timeout=30)
+    time.sleep(3)
+    return True
 
 
 def start_vm(vm_name: str, zone: str) -> bool:
@@ -130,13 +138,13 @@ def provision_new_vm() -> tuple[str, str]:
         code, out = run_cmd(create_cmd, timeout=120)
         if code == 0:
             log(f"Successfully provisioned replacement VM {new_name} in {zone}!")
-            time.sleep(25)
+            time.sleep(30)
 
             # Bootstrap VM
             log(f"Bootstrapping environment on {new_name}...")
             setup_cmd = (
                 f"gcloud compute ssh {new_name} --zone={zone} --quiet --command=\""
-                f"sudo apt-get update && sudo apt-get install -y git && "
+                f"sudo apt-get update && sudo apt-get install -y git aria2 tmux && "
                 f"curl -LsSf https://astral.sh/uv/install.sh | sh && "
                 f"~/.local/bin/uv python install 3.11 && "
                 f"git clone https://github.com/yashgarg195/visual-search-engine-gldv2.git && "
@@ -144,15 +152,23 @@ def provision_new_vm() -> tuple[str, str]:
                 f"~/.local/bin/uv venv .venv --python 3.11 && "
                 f"~/.local/bin/uv pip install --python .venv torch torchvision --index-url https://download.pytorch.org/whl/cu121 && "
                 f"~/.local/bin/uv pip install --python .venv faiss-gpu-cu12 open_clip_torch pandas pyarrow pillow tqdm pyyaml pytest && "
-                f"mkdir -p outputs/embeddings\""
+                f"mkdir -p outputs/embeddings data/processed\""
             )
-            run_cmd(setup_cmd, timeout=300)
+            run_cmd(setup_cmd, timeout=600)
 
-            # Upload local manifest to resume
+            # Upload pre-built metadata tables (train, index, test)
+            run_cmd(f"gcloud compute ssh {new_name} --zone={zone} --quiet --command='mkdir -p ~/visual-search-engine-gldv2/data/processed'", timeout=30)
+            for meta_name in ["metadata_train.parquet", "metadata_index.parquet", "metadata_test.parquet"]:
+                local_meta = PROJECT_ROOT / "data" / "processed" / meta_name
+                if local_meta.is_file():
+                    log(f"Uploading pre-built {meta_name} to {new_name}...")
+                    run_cmd(f"gcloud compute scp --zone={zone} {local_meta} {new_name}:~/visual-search-engine-gldv2/data/processed/", timeout=60)
+
+            # Upload local metadata shards & manifest to resume with 0 duplicate work
             manifest_file = PROJECT_ROOT / "outputs" / "embeddings" / "embedding_manifest.json"
             if manifest_file.is_file():
-                log(f"Uploading existing local manifest to {new_name}...")
-                run_cmd(f"gcloud compute scp --zone={zone} {manifest_file} {new_name}:~/visual-search-engine-gldv2/outputs/embeddings/", timeout=30)
+                log(f"Uploading existing local manifest & parquet shards to {new_name}...")
+                run_cmd(f"gcloud compute scp --zone={zone} {manifest_file} {PROJECT_ROOT}/outputs/embeddings/*_meta.parquet {new_name}:~/visual-search-engine-gldv2/outputs/embeddings/", timeout=120)
 
             ensure_pipeline_running(new_name, zone)
             return new_name, zone

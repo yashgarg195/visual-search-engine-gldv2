@@ -31,6 +31,41 @@ def select_best_device(requested: str = "auto") -> torch.device:
     return torch.device("cpu")
 
 
+from torch.utils.data import Dataset, DataLoader
+
+
+class FastPathDataset(Dataset):
+    """Dataset for parallel multi-threaded image decoding and preprocessing."""
+
+    def __init__(self, paths: List[str], transform):
+        self.paths = paths
+        self.transform = transform
+
+    def __len__(self) -> int:
+        return len(self.paths)
+
+    def __getitem__(self, idx: int):
+        p = self.paths[idx]
+        try:
+            with Image.open(p) as img:
+                img_rgb = img.convert("RGB")
+                tensor = self.transform(img_rgb)
+            return tensor, p, True
+        except Exception:
+            return torch.zeros(3, 224, 224), p, False
+
+
+def custom_collate_fn(batch):
+    tensors, paths, valids = zip(*batch)
+    valid_tensors = [t for t, v in zip(tensors, valids) if v]
+    valid_paths = [p for p, v in zip(paths, valids) if v]
+    if valid_tensors:
+        batch_tensor = torch.stack(valid_tensors)
+    else:
+        batch_tensor = torch.empty(0, 3, 224, 224)
+    return batch_tensor, valid_paths
+
+
 class CLIPEncoder:
     """OpenCLIP Image and Text Encoder producing L2-normalized unit embeddings."""
 
@@ -93,7 +128,11 @@ class CLIPEncoder:
         batch = torch.stack(tensors).to(self.device)
 
         with torch.inference_mode():
-            features = self.model.encode_image(batch)
+            if self.device.type == "cuda":
+                with torch.autocast(device_type="cuda", dtype=torch.float16):
+                    features = self.model.encode_image(batch)
+            else:
+                features = self.model.encode_image(batch)
             # Normalize embeddings to unit L2 norm (so dot product equals cosine similarity)
             features = F.normalize(features, p=2, dim=-1)
             embeddings = features.detach().cpu().numpy().astype(np.float32)
@@ -103,33 +142,55 @@ class CLIPEncoder:
     def encode_image_paths(
         self,
         image_paths: List[Union[str, Path]],
+        batch_size: int = 256,
+        num_workers: int = 8,
     ) -> Tuple[np.ndarray, List[str], List[Tuple[str, str]]]:
-        """Encode a list of image paths, skipping and reporting corrupt images.
+        """Encode a list of image paths using multi-worker parallel CPU loading.
 
         Returns:
             embeddings: (N_valid, dim) float32 array
             valid_paths: list of paths that were successfully read and embedded
             failed_records: list of (path, error_message)
         """
-        valid_images: List[Image.Image] = []
-        valid_paths: List[str] = []
-        failed_records: List[Tuple[str, str]] = []
+        paths_str = [str(p) for p in image_paths]
+        if not paths_str:
+            return np.empty((0, self.embedding_dim), dtype=np.float32), [], []
 
-        for p in image_paths:
-            path_str = str(p)
-            try:
-                with Image.open(path_str) as img:
-                    img_rgb = img.convert("RGB")
-                    valid_images.append(img_rgb)
-                    valid_paths.append(path_str)
-            except Exception as e:
-                failed_records.append((path_str, str(e)))
+        dataset = FastPathDataset(paths_str, self.preprocess)
+        loader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=torch.cuda.is_available(),
+            collate_fn=custom_collate_fn,
+            persistent_workers=False,
+        )
 
-        if not valid_images:
-            return np.empty((0, self.embedding_dim), dtype=np.float32), [], failed_records
+        all_embeddings = []
+        all_valid_paths = []
 
-        embeddings = self.encode_pil_images(valid_images)
-        return embeddings, valid_paths, failed_records
+        with torch.inference_mode():
+            for batch_tensors, paths in loader:
+                if len(paths) == 0:
+                    continue
+                batch_tensors = batch_tensors.to(self.device, non_blocking=True)
+                if self.device.type == "cuda":
+                    with torch.autocast(device_type="cuda", dtype=torch.float16):
+                        features = self.model.encode_image(batch_tensors)
+                else:
+                    features = self.model.encode_image(batch_tensors)
+
+                features = F.normalize(features, p=2, dim=-1)
+                all_embeddings.append(features.detach().cpu().numpy().astype(np.float32))
+                all_valid_paths.extend(paths)
+
+        if all_embeddings:
+            final_embeddings = np.vstack(all_embeddings)
+        else:
+            final_embeddings = np.empty((0, self.embedding_dim), dtype=np.float32)
+
+        return final_embeddings, all_valid_paths, []
 
     def encode_text(self, text: str) -> np.ndarray:
         """Encode a text query string into a normalized 1D embedding vector."""

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLDv2 Visual Landmark Search Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo">🏛️</div>
+        <div>
+          <h1>GLDv2 Visual Landmark Search</h1>
+          <p class="subtitle">Real-time retrieval across 4.17M landmark images using OpenCLIP &amp; FAISS IVF-PQ</p>
+        </div>
+      </div>
+      <div class="system-pills" id="systemPills">
+        <div class="pill pill-success">
+          <span class="pill-dot"></span>
+          <span id="pillVectors">4,173,658 Vectors</span>
+        </div>
+        <div class="pill">
+          <span>Model: <strong>OpenCLIP ViT-B-32</strong></span>
+        </div>
+        <div class="pill">
+          <span id="pillDevice">Device: <strong>Auto</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Query Panel -->
+    <main class="search-panel">
+      <!-- Search Mode Tabs -->
+      <div class="tab-group">
+        <button class="tab-btn active" id="tabImageBtn" data-target="imageTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          Image Upload Search
+        </button>
+        <button class="tab-btn" id="tabTextBtn" data-target="textTab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Text Prompt Search
+        </button>
+      </div>
+
+      <!-- Tab Content: Image Upload -->
+      <section class="tab-content active" id="imageTab">
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+          <div class="dropzone-empty" id="dropzoneEmpty">
+            <div class="upload-icon">📸</div>
+            <h3>Drag &amp; drop a landmark photo here</h3>
+            <p>or <button type="button" class="link-btn" id="browseBtn">browse files</button> &bull; paste from clipboard (Cmd+V / Ctrl+V)</p>
+            <span class="format-note">Supports JPG, PNG, WEBP up to 25 MB</span>
+          </div>
+
+          <div class="dropzone-preview" id="dropzonePreview" style="display:none">
+            <img id="imagePreview" alt="Query Preview">
+            <div class="preview-meta">
+              <span id="previewName" class="file-name">filename.jpg</span>
+              <span id="previewSize" class="file-size">1.2 MB</span>
+              <button type="button" class="btn btn-secondary btn-sm" id="removeImageBtn">✕ Remove</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab Content: Text Prompt -->
+      <section class="tab-content" id="textTab">
+        <div class="text-input-wrap">
+          <input type="text" id="textQueryInput" class="text-query-input" placeholder="e.g. Eiffel Tower in Paris, Colosseum in Rome, Taj Mahal..." autocomplete="off">
+          <button type="button" class="btn-clear" id="clearTextBtn" style="display:none">&times;</button>
+        </div>
+
+        <!-- Quick Sample Chips -->
+        <div class="sample-chips">
+          <span class="chips-label">Try sample:</span>
+          <button type="button" class="chip-btn" data-query="Eiffel Tower in Paris">🇫🇷 Eiffel Tower</button>
+          <button type="button" class="chip-btn" data-query="Taj Mahal in India">🇮🇳 Taj Mahal</button>
+          <button type="button" class="chip-btn" data-query="Colosseum in Rome">🇮🇹 Colosseum</button>
+          <button type="button" class="chip-btn" data-query="Golden Gate Bridge in San Francisco">🇺🇸 Golden Gate</button>
+          <button type="button" class="chip-btn" data-query="Sydney Opera House">🇦🇺 Sydney Opera House</button>
+        </div>
+      </section>
+
+      <!-- Search Controls Bar -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <label for="topKSelect">Top-K Results:</label>
+          <select id="topKSelect" class="form-select">
+            <option value="5">5 matches</option>
+            <option value="10" selected>10 matches</option>
+            <option value="20">20 matches</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="nprobeSelect">Voronoi Probes (nprobe):</label>
+          <select id="nprobeSelect" class="form-select">
+            <option value="16">16 (Fastest)</option>
+            <option value="32" selected>32 (Balanced)</option>
+            <option value="64">64 (Highest Recall)</option>
+          </select>
+        </div>
+
+        <div class="action-wrap">
+          <button type="button" id="searchSubmitBtn" class="btn btn-primary">
+            <span class="btn-spinner" style="display:none"></span>
+            <span class="btn-text">Search Landmark</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Error Banner -->
+    <div id="errorBanner" class="error-banner" style="display:none">
+      <span class="error-icon">⚠️</span>
+      <span id="errorMessage" class="error-text">An error occurred during search.</span>
+      <button type="button" class="btn-close" id="closeErrorBtn">&times;</button>
+    </div>
+
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection" style="display:none">
+      <!-- Latency & Query Metrics -->
+      <div class="metrics-bar">
+        <div class="metrics-left">
+          <span class="query-tag" id="queryDesc">Text: 'Eiffel Tower'</span>
+        </div>
+        <div class="metrics-right">
+          <div class="metric-pill">
+            <span class="metric-label">Embedding:</span>
+            <strong id="metricEmbTime">0 ms</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">FAISS Search:</span>
+            <strong id="metricSearchTime">0 ms</strong>
+          </div>
+          <div class="metric-pill metric-highlight">
+            <span class="metric-label">Total:</span>
+            <strong id="metricTotalTime">0 ms</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Identified Landmark Card (Similarity-Weighted Voting) -->
+      <div class="top-candidate-card" id="topCandidateCard">
+        <div class="candidate-header">
+          <div class="candidate-badge">Top Identified Landmark</div>
+          <span class="confidence-tag" id="candMargin">Confidence: +2.28 Margin</span>
+        </div>
+        <div class="candidate-body">
+          <h2 id="candName" class="candidate-title">Eiffel Tower</h2>
+          <div class="candidate-meta">
+            <span>Landmark ID: <strong id="candId">47378</strong></span>
+            <span>Split: <strong id="candSplit">train</strong></span>
+            <span>Total Vote Score: <strong id="candScore">2.6056</strong></span>
+            <span>Supporting Matches: <strong id="candMatches">8 images</strong></span>
+            <span id="candHierarchyWrap" style="display:none">Type: <span class="badge" id="candHierarchy">tower</span></span>
+          </div>
+          <div class="candidate-actions" id="candActions">
+            <a id="candWikiBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+              View on Wikimedia Commons ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Retrieved Nearest Neighbors Grid -->
+      <div class="matches-header">
+        <h3>Top Retrieved Nearest Neighbors</h3>
+        <span class="matches-count" id="matchesCount">10 matches retrieved</span>
+      </div>
+
+      <div class="matches-grid" id="matchesGrid">
+        <!-- Match cards dynamically injected by app.js -->
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

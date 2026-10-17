@@ -44,7 +44,7 @@ def main():
         default=None,
         help="Path to save populated index (default: outputs/index/ivfpq_populated.index)",
     )
-    parser.add_argument("--save-every-shard", action="store_true", default=True, help="Checkpoint index after every shard")
+    parser.add_argument("--checkpoint-interval", type=int, default=50, help="Checkpoint index every N shards")
     parser.add_argument("--force-rebuild", action="store_true", help="Clear existing populated index and rebuild from scratch")
     args = parser.parse_args()
 
@@ -118,7 +118,7 @@ def main():
     current_faiss_id = int(manifest.get("last_faiss_id", 0))
     new_mapping_dfs: List[pd.DataFrame] = []
 
-    for shard_info in tqdm(pending_shards, desc="Adding Shards to IVF-PQ"):
+    for idx, shard_info in enumerate(tqdm(pending_shards, desc="Adding Shards to IVF-PQ")):
         shard_name = shard_info["shard_name"]
         emb_file = cfg.embedding_dir / shard_info["emb_file"]
         meta_file = cfg.embedding_dir / shard_info["meta_file"]
@@ -157,11 +157,9 @@ def main():
         manifest["total_added"] = index.total_vectors
         manifest["last_faiss_id"] = current_faiss_id
 
-        if args.save_every_shard:
+        if (idx + 1) % args.checkpoint_interval == 0:
             index.save(output_index_path)
             atomic_save_json(manifest, index_manifest_path)
-
-            # Consolidate mapping dataframe
             combined_mappings = pd.concat(existing_mappings + new_mapping_dfs, ignore_index=True)
             atomic_save_parquet(combined_mappings, id_mapping_path)
 
