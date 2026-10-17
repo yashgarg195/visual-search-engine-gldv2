@@ -263,7 +263,7 @@ def main():
     # Final flush
     flush_shard()
     logger.info("=== STREAMING PIPELINE FINISHED ===")
-    logger.info("Total embedded vectors in store: %d across %d shards.", store._manifest.get("total_vectors", 0), len(store.get_shard_manifests()))
+    logger.info("Total embedded vectors in store: %d across %d shards.", store._manifest.get("total_vectors", 0), len(store._manifest.get("shards", [])))
 
 
 if __name__ == "__main__":
