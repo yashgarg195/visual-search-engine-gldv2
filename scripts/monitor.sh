@@ -61,7 +61,9 @@ echo "======================================================================"
 # 4. Stream live logs continuously without needing a raw pty terminal
 gcloud compute ssh "${VM_NAME}" --zone="${VM_ZONE}" --tunnel-through-iap --quiet --command="
 SESSION=''
-if tmux has-session -t gldv2_fast 2>/dev/null; then
+if tmux has-session -t gldv2_splits 2>/dev/null; then
+    SESSION='gldv2_splits'
+elif tmux has-session -t gldv2_fast 2>/dev/null; then
     SESSION='gldv2_fast'
 elif tmux has-session -t gldv2 2>/dev/null; then
     SESSION='gldv2'
