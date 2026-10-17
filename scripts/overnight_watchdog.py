@@ -90,7 +90,7 @@ def ensure_pipeline_running(vm_name: str, zone: str) -> bool:
         f"gcloud compute ssh {vm_name} --zone={zone} --quiet --command=\""
         f"tmux kill-session -t gldv2_splits 2>/dev/null || true; "
         f"tmux new-session -d -s gldv2_splits 'cd ~/visual-search-engine-gldv2 && "
-        f".venv/bin/python scripts/ingest_splits.py --splits index test --batch-size 256 --num-workers 8 --device cuda 2>&1 | tee -a pipeline.log'\""
+        f".venv/bin/python scripts/ingest_splits.py --splits test --batch-size 256 --num-workers 8 --device cuda 2>&1 | tee -a pipeline.log'\""
     )
     code, out = run_cmd(launch_cmd, timeout=30)
     time.sleep(3)
