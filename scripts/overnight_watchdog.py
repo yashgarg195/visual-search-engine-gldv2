@@ -156,19 +156,19 @@ def provision_new_vm() -> tuple[str, str]:
             )
             run_cmd(setup_cmd, timeout=600)
 
-            # Upload pre-built metadata tables (train, index, test)
+            # Upload pre-built metadata tables (index, test)
             run_cmd(f"gcloud compute ssh {new_name} --zone={zone} --quiet --command='mkdir -p ~/visual-search-engine-gldv2/data/processed'", timeout=30)
-            for meta_name in ["metadata_train.parquet", "metadata_index.parquet", "metadata_test.parquet"]:
+            for meta_name in ["metadata_index.parquet", "metadata_test.parquet"]:
                 local_meta = PROJECT_ROOT / "data" / "processed" / meta_name
                 if local_meta.is_file():
                     log(f"Uploading pre-built {meta_name} to {new_name}...")
-                    run_cmd(f"gcloud compute scp --zone={zone} {local_meta} {new_name}:~/visual-search-engine-gldv2/data/processed/", timeout=60)
+                    run_cmd(f"gcloud compute scp --zone={zone} {local_meta} {new_name}:~/visual-search-engine-gldv2/data/processed/", timeout=120)
 
-            # Upload local metadata shards & manifest to resume with 0 duplicate work
+            # Upload local manifest so VM resumes from shard 410
             manifest_file = PROJECT_ROOT / "outputs" / "embeddings" / "embedding_manifest.json"
             if manifest_file.is_file():
-                log(f"Uploading existing local manifest & parquet shards to {new_name}...")
-                run_cmd(f"gcloud compute scp --zone={zone} {manifest_file} {PROJECT_ROOT}/outputs/embeddings/*_meta.parquet {new_name}:~/visual-search-engine-gldv2/outputs/embeddings/", timeout=120)
+                log(f"Uploading existing local manifest to {new_name}...")
+                run_cmd(f"gcloud compute scp --zone={zone} {manifest_file} {new_name}:~/visual-search-engine-gldv2/outputs/embeddings/", timeout=30)
 
             ensure_pipeline_running(new_name, zone)
             return new_name, zone
