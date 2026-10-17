@@ -13,17 +13,32 @@ env/
 
 # Data and large artifacts
 data/raw/
-data/processed/
-outputs/embeddings/
-outputs/index/
-outputs/evaluation/
+data/processed/*.parquet
+data/processed/*.csv
+outputs/embeddings/*.npy
+outputs/embeddings/*.parquet
+outputs/index/*.index
+outputs/index/*.parquet
+outputs/evaluation/*.parquet
+outputs/evaluation/*.csv
+
+# Large binaries and archives
 *.parquet
 *.npy
 *.index
+*.tar
+*.tar.gz
+*.zip
+
+# Keep manifest json files tracked
+!outputs/embeddings/*.json
+!outputs/index/*.json
+!data/processed/*.json
 
 # Logs & temp
 *.log
 .DS_Store
+._*
 .pytest_cache/
 .coverage
 htmlcov/

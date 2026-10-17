@@ -16,6 +16,12 @@ from src.metadata.lookup import LandmarkLookupTable
 from src.models.clip_encoder import CLIPEncoder
 from src.utils.logging import get_logger
 
+try:
+    from src.reranking.pipeline import GeometricReranker
+    HAS_GEOMETRIC_RERANKER = True
+except ImportError:
+    HAS_GEOMETRIC_RERANKER = False
+
 logger = get_logger("search_service")
 
 
@@ -149,6 +155,9 @@ class SearchEngineService:
                 else f"Landmark #{lid}"
             )
 
+            img_rel_path = f"{split}/{img_id[0]}/{img_id[1]}/{img_id[2]}/{img_id}.jpg" if len(img_id) >= 3 else ""
+            img_full_path = str(self.cfg.image_dir / img_rel_path) if img_rel_path else ""
+
             match_data = {
                 "rank": rank,
                 "faiss_id": int(fid),
@@ -160,6 +169,7 @@ class SearchEngineService:
                 "is_resolved": bool(landmark_info.is_resolved) if landmark_info else False,
                 "category_url": category_url,
                 "hierarchical_label": hierarchical_label,
+                "image_path": img_full_path,
             }
             retrieved_matches.append(match_data)
             rank += 1
@@ -227,6 +237,7 @@ class SearchEngineService:
         top_k: int = 10,
         nprobe: int = 32,
         rerank: bool = False,
+        rerank_geometric: bool = False,
     ) -> Dict[str, Any]:
         """Encode raw image bytes into OpenCLIP representation and retrieve matching landmarks."""
         if not self.encoder:
@@ -245,8 +256,36 @@ class SearchEngineService:
             nprobe=nprobe,
             rerank=rerank,
         )
+
+        # Optional Stage-2 Geometric Verification
+        t_geom_ms = 0.0
+        if rerank_geometric and HAS_GEOMETRIC_RERANKER:
+            t_geom_start = time.perf_counter()
+            reranker = GeometricReranker()
+            res["matches"] = reranker.rerank(
+                query_image=rgb_img,
+                candidates=res["matches"],
+                top_k=top_k,
+            )
+            # Recompute voting summary with reranked matches
+            voting_res = compute_similarity_weighted_votes(res["matches"])
+            if voting_res.leading_candidate:
+                lead = voting_res.leading_candidate
+                res["voting_summary"] = {
+                    "landmark_name": lead.landmark_name,
+                    "landmark_id": lead.landmark_id,
+                    "split": lead.split,
+                    "total_vote_score": round(lead.total_vote_score, 4),
+                    "confidence_margin": round(voting_res.margin, 4),
+                    "match_count": lead.match_count,
+                    "category_url": lead.category_url or "",
+                    "hierarchical_label": lead.hierarchical_label or "",
+                }
+            t_geom_ms = (time.perf_counter() - t_geom_start) * 1000.0
+            res["geometric_rerank_ms"] = round(t_geom_ms, 2)
+
         res["query_type"] = "image"
         res["query_input"] = filename
         res["embedding_latency_ms"] = round(t_emb_ms, 2)
-        res["total_latency_ms"] = round(t_emb_ms + res["search_latency_ms"], 2)
+        res["total_latency_ms"] = round(t_emb_ms + res["search_latency_ms"] + t_geom_ms, 2)
         return res

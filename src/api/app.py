@@ -111,6 +111,7 @@ async def search_by_image(
     top_k: int = Form(10),
     nprobe: int = Form(32),
     rerank: bool = Form(False),
+    rerank_geometric: bool = Form(False),
 ):
     """Upload a query photo to retrieve nearest landmark matches."""
     if not search_service.is_ready:
@@ -134,6 +135,7 @@ async def search_by_image(
             top_k=top_k,
             nprobe=nprobe,
             rerank=rerank,
+            rerank_geometric=rerank_geometric,
         )
         return results
     except Exception as e:

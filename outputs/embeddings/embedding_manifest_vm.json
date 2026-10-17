@@ -1,0 +1,3699 @@
+{
+  "model_name": "ViT-B-32",
+  "pretrained": "openai",
+  "embedding_dim": 512,
+  "normalized": true,
+  "shards": [
+    {
+      "shard_id": 0,
+      "shard_name": "shard_00000",
+      "emb_file": "shard_00000_emb.npy",
+      "meta_file": "shard_00000_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0079a6f43ebcb7e6",
+      "last_id": "00e987f86ac4ddad"
+    },
+    {
+      "shard_id": 1,
+      "shard_name": "shard_00001",
+      "emb_file": "shard_00001_emb.npy",
+      "meta_file": "shard_00001_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "00e42e5e4c469d1e",
+      "last_id": "01272aa3c6aa4bde"
+    },
+    {
+      "shard_id": 2,
+      "shard_name": "shard_00002",
+      "emb_file": "shard_00002_emb.npy",
+      "meta_file": "shard_00002_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "012048f8481dee11",
+      "last_id": "01c248b3274404ef"
+    },
+    {
+      "shard_id": 3,
+      "shard_name": "shard_00003",
+      "emb_file": "shard_00003_emb.npy",
+      "meta_file": "shard_00003_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "01c435f5b2fea076",
+      "last_id": "02517ae4a10ca2d1"
+    },
+    {
+      "shard_id": 4,
+      "shard_name": "shard_00004",
+      "emb_file": "shard_00004_emb.npy",
+      "meta_file": "shard_00004_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "025255b36941ddba",
+      "last_id": "037a12b292f56f6f"
+    },
+    {
+      "shard_id": 5,
+      "shard_name": "shard_00005",
+      "emb_file": "shard_00005_emb.npy",
+      "meta_file": "shard_00005_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "037c49cc031e5916",
+      "last_id": "03f3a25c3b6e0005"
+    },
+    {
+      "shard_id": 6,
+      "shard_name": "shard_00006",
+      "emb_file": "shard_00006_emb.npy",
+      "meta_file": "shard_00006_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "03fced990838fec7",
+      "last_id": "042c8ae4dc2ae5f7"
+    },
+    {
+      "shard_id": 7,
+      "shard_name": "shard_00007",
+      "emb_file": "shard_00007_emb.npy",
+      "meta_file": "shard_00007_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0429609deded2827",
+      "last_id": "04dfd5bfe66708b9"
+    },
+    {
+      "shard_id": 8,
+      "shard_name": "shard_00008",
+      "emb_file": "shard_00008_emb.npy",
+      "meta_file": "shard_00008_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "04d86bc3cbc5a4e9",
+      "last_id": "0581abf13a2eb716"
+    },
+    {
+      "shard_id": 9,
+      "shard_name": "shard_00009",
+      "emb_file": "shard_00009_emb.npy",
+      "meta_file": "shard_00009_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "0587604c096e6896",
+      "last_id": "06a2e1b618dedd3a"
+    },
+    {
+      "shard_id": 10,
+      "shard_name": "shard_00010",
+      "emb_file": "shard_00010_emb.npy",
+      "meta_file": "shard_00010_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "06a06cf86de1ec3d",
+      "last_id": "06fe456e86f10b58"
+    },
+    {
+      "shard_id": 11,
+      "shard_name": "shard_00011",
+      "emb_file": "shard_00011_emb.npy",
+      "meta_file": "shard_00011_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "06fa1e8518eed8bc",
+      "last_id": "0738c844b9b31e03"
+    },
+    {
+      "shard_id": 12,
+      "shard_name": "shard_00012",
+      "emb_file": "shard_00012_emb.npy",
+      "meta_file": "shard_00012_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "073fa902ab293c39",
+      "last_id": "0829c8da70250292"
+    },
+    {
+      "shard_id": 13,
+      "shard_name": "shard_00013",
+      "emb_file": "shard_00013_emb.npy",
+      "meta_file": "shard_00013_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "082a8421ef169fb2",
+      "last_id": "0912e5ed553ce0e3"
+    },
+    {
+      "shard_id": 14,
+      "shard_name": "shard_00014",
+      "emb_file": "shard_00014_emb.npy",
+      "meta_file": "shard_00014_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "091d31c58c2cf248",
+      "last_id": "09ac5c3c3816c731"
+    },
+    {
+      "shard_id": 15,
+      "shard_name": "shard_00015",
+      "emb_file": "shard_00015_emb.npy",
+      "meta_file": "shard_00015_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "09a37c15b8a4b159",
+      "last_id": "0a09e87bce0dc29f"
+    },
+    {
+      "shard_id": 16,
+      "shard_name": "shard_00016",
+      "emb_file": "shard_00016_emb.npy",
+      "meta_file": "shard_00016_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0a04c3935a48c084",
+      "last_id": "0a62255afbcca218"
+    },
+    {
+      "shard_id": 17,
+      "shard_name": "shard_00017",
+      "emb_file": "shard_00017_emb.npy",
+      "meta_file": "shard_00017_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0a61b2a1cc4e7810",
+      "last_id": "0b0416a294374211"
+    },
+    {
+      "shard_id": 18,
+      "shard_name": "shard_00018",
+      "emb_file": "shard_00018_emb.npy",
+      "meta_file": "shard_00018_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "0b04f38eb5044a6e",
+      "last_id": "0bf640a93c772169"
+    },
+    {
+      "shard_id": 19,
+      "shard_name": "shard_00019",
+      "emb_file": "shard_00019_emb.npy",
+      "meta_file": "shard_00019_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0bf9ad2884154521",
+      "last_id": "0c957a5e7133dc9b"
+    },
+    {
+      "shard_id": 20,
+      "shard_name": "shard_00020",
+      "emb_file": "shard_00020_emb.npy",
+      "meta_file": "shard_00020_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0c9c12b5d9e831a1",
+      "last_id": "0d132fb08203ed6e"
+    },
+    {
+      "shard_id": 21,
+      "shard_name": "shard_00021",
+      "emb_file": "shard_00021_emb.npy",
+      "meta_file": "shard_00021_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0d19b41114a4a76d",
+      "last_id": "0d6010d5d78348fb"
+    },
+    {
+      "shard_id": 22,
+      "shard_name": "shard_00022",
+      "emb_file": "shard_00022_emb.npy",
+      "meta_file": "shard_00022_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0d6522ac05f27ea4",
+      "last_id": "0dddb681f1c6cd90"
+    },
+    {
+      "shard_id": 23,
+      "shard_name": "shard_00023",
+      "emb_file": "shard_00023_emb.npy",
+      "meta_file": "shard_00023_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "0dd3c2216cd1220a",
+      "last_id": "0f4cd318d3129809"
+    },
+    {
+      "shard_id": 24,
+      "shard_name": "shard_00024",
+      "emb_file": "shard_00024_emb.npy",
+      "meta_file": "shard_00024_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0f4c0f5c38395527",
+      "last_id": "0fb646a2c8208b9f"
+    },
+    {
+      "shard_id": 25,
+      "shard_name": "shard_00025",
+      "emb_file": "shard_00025_emb.npy",
+      "meta_file": "shard_00025_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "0fb82e2b3b11ca78",
+      "last_id": "1004050a9b75f142"
+    },
+    {
+      "shard_id": 26,
+      "shard_name": "shard_00026",
+      "emb_file": "shard_00026_emb.npy",
+      "meta_file": "shard_00026_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1007cb22f93e3695",
+      "last_id": "10d069d37a1dc08e"
+    },
+    {
+      "shard_id": 27,
+      "shard_name": "shard_00027",
+      "emb_file": "shard_00027_emb.npy",
+      "meta_file": "shard_00027_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "10d2fdd0b1b6bf43",
+      "last_id": "1171f32de8810bb0"
+    },
+    {
+      "shard_id": 28,
+      "shard_name": "shard_00028",
+      "emb_file": "shard_00028_emb.npy",
+      "meta_file": "shard_00028_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "11737cfdfb10cf15",
+      "last_id": "121cf0b603a14bef"
+    },
+    {
+      "shard_id": 29,
+      "shard_name": "shard_00029",
+      "emb_file": "shard_00029_emb.npy",
+      "meta_file": "shard_00029_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1217ac52e3af38a1",
+      "last_id": "129b3417f948a9a2"
+    },
+    {
+      "shard_id": 30,
+      "shard_name": "shard_00030",
+      "emb_file": "shard_00030_emb.npy",
+      "meta_file": "shard_00030_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "129119f8b78ae6ab",
+      "last_id": "1309c09d2ced0892"
+    },
+    {
+      "shard_id": 31,
+      "shard_name": "shard_00031",
+      "emb_file": "shard_00031_emb.npy",
+      "meta_file": "shard_00031_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "130d9f10db426da4",
+      "last_id": "13801d0d9a347418"
+    },
+    {
+      "shard_id": 32,
+      "shard_name": "shard_00032",
+      "emb_file": "shard_00032_emb.npy",
+      "meta_file": "shard_00032_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "138227135752879b",
+      "last_id": "147e74693870de04"
+    },
+    {
+      "shard_id": 33,
+      "shard_name": "shard_00033",
+      "emb_file": "shard_00033_emb.npy",
+      "meta_file": "shard_00033_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "147ff33c399f4723",
+      "last_id": "1543d3623c4ddc76"
+    },
+    {
+      "shard_id": 34,
+      "shard_name": "shard_00034",
+      "emb_file": "shard_00034_emb.npy",
+      "meta_file": "shard_00034_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "154e7a6c27c58121",
+      "last_id": "15b05006f22c9542"
+    },
+    {
+      "shard_id": 35,
+      "shard_name": "shard_00035",
+      "emb_file": "shard_00035_emb.npy",
+      "meta_file": "shard_00035_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "15b3fd46863d2958",
+      "last_id": "166f346bef224b9a"
+    },
+    {
+      "shard_id": 36,
+      "shard_name": "shard_00036",
+      "emb_file": "shard_00036_emb.npy",
+      "meta_file": "shard_00036_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1664be42e8f1f088",
+      "last_id": "1688ce4d39e550d8"
+    },
+    {
+      "shard_id": 37,
+      "shard_name": "shard_00037",
+      "emb_file": "shard_00037_emb.npy",
+      "meta_file": "shard_00037_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "168d8fef5d244cff",
+      "last_id": "17e5c23b48658268"
+    },
+    {
+      "shard_id": 38,
+      "shard_name": "shard_00038",
+      "emb_file": "shard_00038_emb.npy",
+      "meta_file": "shard_00038_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "17eed9522288f836",
+      "last_id": "182b3f1556c6d21f"
+    },
+    {
+      "shard_id": 39,
+      "shard_name": "shard_00039",
+      "emb_file": "shard_00039_emb.npy",
+      "meta_file": "shard_00039_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "182e2dea4d7fa084",
+      "last_id": "18bb716c750d4ef6"
+    },
+    {
+      "shard_id": 40,
+      "shard_name": "shard_00040",
+      "emb_file": "shard_00040_emb.npy",
+      "meta_file": "shard_00040_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "18b01cc3cabb3dbf",
+      "last_id": "195446f5a57f1be1"
+    },
+    {
+      "shard_id": 41,
+      "shard_name": "shard_00041",
+      "emb_file": "shard_00041_emb.npy",
+      "meta_file": "shard_00041_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "19530189836c1a98",
+      "last_id": "1a7d6d565dfdb944"
+    },
+    {
+      "shard_id": 42,
+      "shard_name": "shard_00042",
+      "emb_file": "shard_00042_emb.npy",
+      "meta_file": "shard_00042_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1a78647ae3a8bef7",
+      "last_id": "1aaac8bf5c7777a0"
+    },
+    {
+      "shard_id": 43,
+      "shard_name": "shard_00043",
+      "emb_file": "shard_00043_emb.npy",
+      "meta_file": "shard_00043_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1aaf0d0f13e9e57e",
+      "last_id": "1b274e8da7de8364"
+    },
+    {
+      "shard_id": 44,
+      "shard_name": "shard_00044",
+      "emb_file": "shard_00044_emb.npy",
+      "meta_file": "shard_00044_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1b2e322feaf50a61",
+      "last_id": "1bd4bd019c931414"
+    },
+    {
+      "shard_id": 45,
+      "shard_name": "shard_00045",
+      "emb_file": "shard_00045_emb.npy",
+      "meta_file": "shard_00045_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1bd5c46242bb58b3",
+      "last_id": "1c8bcc6dd78f39e1"
+    },
+    {
+      "shard_id": 46,
+      "shard_name": "shard_00046",
+      "emb_file": "shard_00046_emb.npy",
+      "meta_file": "shard_00046_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "1c8a434894dcde3e",
+      "last_id": "1da379d29d99b774"
+    },
+    {
+      "shard_id": 47,
+      "shard_name": "shard_00047",
+      "emb_file": "shard_00047_emb.npy",
+      "meta_file": "shard_00047_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1da1ce70d94e9dc2",
+      "last_id": "1e0edba169c40766"
+    },
+    {
+      "shard_id": 48,
+      "shard_name": "shard_00048",
+      "emb_file": "shard_00048_emb.npy",
+      "meta_file": "shard_00048_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1e0106d3e214fd44",
+      "last_id": "1e3433f187253d56"
+    },
+    {
+      "shard_id": 49,
+      "shard_name": "shard_00049",
+      "emb_file": "shard_00049_emb.npy",
+      "meta_file": "shard_00049_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1e3d090e6561ac19",
+      "last_id": "1ecf0196d8027adf"
+    },
+    {
+      "shard_id": 50,
+      "shard_name": "shard_00050",
+      "emb_file": "shard_00050_emb.npy",
+      "meta_file": "shard_00050_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "1ec060160d7b03d1",
+      "last_id": "1f853520b1d4a938"
+    },
+    {
+      "shard_id": 51,
+      "shard_name": "shard_00051",
+      "emb_file": "shard_00051_emb.npy",
+      "meta_file": "shard_00051_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "1f8b6278981567d3",
+      "last_id": "20adc7241167cfe6"
+    },
+    {
+      "shard_id": 52,
+      "shard_name": "shard_00052",
+      "emb_file": "shard_00052_emb.npy",
+      "meta_file": "shard_00052_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "20a17a9065a3df98",
+      "last_id": "210eaa848483afb8"
+    },
+    {
+      "shard_id": 53,
+      "shard_name": "shard_00053",
+      "emb_file": "shard_00053_emb.npy",
+      "meta_file": "shard_00053_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "21026270822cd93b",
+      "last_id": "216fc43bac5a3d14"
+    },
+    {
+      "shard_id": 54,
+      "shard_name": "shard_00054",
+      "emb_file": "shard_00054_emb.npy",
+      "meta_file": "shard_00054_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "216a833b5ec0ade9",
+      "last_id": "2230b32e740846f6"
+    },
+    {
+      "shard_id": 55,
+      "shard_name": "shard_00055",
+      "emb_file": "shard_00055_emb.npy",
+      "meta_file": "shard_00055_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "223666463a851760",
+      "last_id": "22f3acfa050dfdac"
+    },
+    {
+      "shard_id": 56,
+      "shard_name": "shard_00056",
+      "emb_file": "shard_00056_emb.npy",
+      "meta_file": "shard_00056_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "22fa388acb04a504",
+      "last_id": "239b4bb461440f1d"
+    },
+    {
+      "shard_id": 57,
+      "shard_name": "shard_00057",
+      "emb_file": "shard_00057_emb.npy",
+      "meta_file": "shard_00057_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2393bdcbfa1a5e42",
+      "last_id": "2409125eccdc6665"
+    },
+    {
+      "shard_id": 58,
+      "shard_name": "shard_00058",
+      "emb_file": "shard_00058_emb.npy",
+      "meta_file": "shard_00058_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "240e6ef7ad384215",
+      "last_id": "2464e9006c90a37d"
+    },
+    {
+      "shard_id": 59,
+      "shard_name": "shard_00059",
+      "emb_file": "shard_00059_emb.npy",
+      "meta_file": "shard_00059_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2461445e4b4c699c",
+      "last_id": "25077b2d270b1502"
+    },
+    {
+      "shard_id": 60,
+      "shard_name": "shard_00060",
+      "emb_file": "shard_00060_emb.npy",
+      "meta_file": "shard_00060_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "2504a6d6ae259561",
+      "last_id": "264d2ce695ea115c"
+    },
+    {
+      "shard_id": 61,
+      "shard_name": "shard_00061",
+      "emb_file": "shard_00061_emb.npy",
+      "meta_file": "shard_00061_meta.parquet",
+      "num_vectors": 10112,
+      "first_id": "2640636e51908534",
+      "last_id": "01eb9d9e0324be11"
+    },
+    {
+      "shard_id": 62,
+      "shard_name": "shard_00062",
+      "emb_file": "shard_00062_emb.npy",
+      "meta_file": "shard_00062_meta.parquet",
+      "num_vectors": 10112,
+      "first_id": "01e01fff380c89dd",
+      "last_id": "01d265b4ca178377"
+    },
+    {
+      "shard_id": 63,
+      "shard_name": "shard_00063",
+      "emb_file": "shard_00063_emb.npy",
+      "meta_file": "shard_00063_meta.parquet",
+      "num_vectors": 10112,
+      "first_id": "01d767ec54e41dae",
+      "last_id": "02b9e33717a65a19"
+    },
+    {
+      "shard_id": 64,
+      "shard_name": "shard_00064",
+      "emb_file": "shard_00064_emb.npy",
+      "meta_file": "shard_00064_meta.parquet",
+      "num_vectors": 10112,
+      "first_id": "02b1013a4d0dd031",
+      "last_id": "03038e0863bf00b5"
+    },
+    {
+      "shard_id": 65,
+      "shard_name": "shard_00065",
+      "emb_file": "shard_00065_emb.npy",
+      "meta_file": "shard_00065_meta.parquet",
+      "num_vectors": 10112,
+      "first_id": "0309b063d80755cb",
+      "last_id": "00240f2278f09090"
+    },
+    {
+      "shard_id": 66,
+      "shard_name": "shard_00066",
+      "emb_file": "shard_00066_emb.npy",
+      "meta_file": "shard_00066_meta.parquet",
+      "num_vectors": 10118,
+      "first_id": "002ab6321578aeba",
+      "last_id": "26b7a8f0435cd6b7"
+    },
+    {
+      "shard_id": 67,
+      "shard_name": "shard_00067",
+      "emb_file": "shard_00067_emb.npy",
+      "meta_file": "shard_00067_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "26b66ececf73a1f3",
+      "last_id": "275ccd37b0ed771e"
+    },
+    {
+      "shard_id": 68,
+      "shard_name": "shard_00068",
+      "emb_file": "shard_00068_emb.npy",
+      "meta_file": "shard_00068_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "275d7aecf7cd576e",
+      "last_id": "2783e7163f313004"
+    },
+    {
+      "shard_id": 69,
+      "shard_name": "shard_00069",
+      "emb_file": "shard_00069_emb.npy",
+      "meta_file": "shard_00069_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "278a68c741666c0e",
+      "last_id": "28e99683eddf436f"
+    },
+    {
+      "shard_id": 70,
+      "shard_name": "shard_00070",
+      "emb_file": "shard_00070_emb.npy",
+      "meta_file": "shard_00070_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "28e8ab980272e0cc",
+      "last_id": "29209ebbfa4f7174"
+    },
+    {
+      "shard_id": 71,
+      "shard_name": "shard_00071",
+      "emb_file": "shard_00071_emb.npy",
+      "meta_file": "shard_00071_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2926978acc770dc9",
+      "last_id": "29b6449229ef557e"
+    },
+    {
+      "shard_id": 72,
+      "shard_name": "shard_00072",
+      "emb_file": "shard_00072_emb.npy",
+      "meta_file": "shard_00072_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "29bb255ba587cff0",
+      "last_id": "2a6a9da4ee50b376"
+    },
+    {
+      "shard_id": 73,
+      "shard_name": "shard_00073",
+      "emb_file": "shard_00073_emb.npy",
+      "meta_file": "shard_00073_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2a6b0b415511cd8b",
+      "last_id": "2a81b624918000fd"
+    },
+    {
+      "shard_id": 74,
+      "shard_name": "shard_00074",
+      "emb_file": "shard_00074_emb.npy",
+      "meta_file": "shard_00074_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "2a89e844583f68e0",
+      "last_id": "2be104aa34c5d6d3"
+    },
+    {
+      "shard_id": 75,
+      "shard_name": "shard_00075",
+      "emb_file": "shard_00075_emb.npy",
+      "meta_file": "shard_00075_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2be3d7bdf9afc198",
+      "last_id": "2c2f2e15aa2e2ed4"
+    },
+    {
+      "shard_id": 76,
+      "shard_name": "shard_00076",
+      "emb_file": "shard_00076_emb.npy",
+      "meta_file": "shard_00076_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2c29fa0e20f2769e",
+      "last_id": "2cce7aec391e2d0d"
+    },
+    {
+      "shard_id": 77,
+      "shard_name": "shard_00077",
+      "emb_file": "shard_00077_emb.npy",
+      "meta_file": "shard_00077_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2cc612e06cdd3e30",
+      "last_id": "2d500ce6fd5de9e7"
+    },
+    {
+      "shard_id": 78,
+      "shard_name": "shard_00078",
+      "emb_file": "shard_00078_emb.npy",
+      "meta_file": "shard_00078_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "2d5580c8cf101f63",
+      "last_id": "2e7cdf667f063495"
+    },
+    {
+      "shard_id": 79,
+      "shard_name": "shard_00079",
+      "emb_file": "shard_00079_emb.npy",
+      "meta_file": "shard_00079_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2e7a47a9f3bce24a",
+      "last_id": "2eeeb9e9cee02527"
+    },
+    {
+      "shard_id": 80,
+      "shard_name": "shard_00080",
+      "emb_file": "shard_00080_emb.npy",
+      "meta_file": "shard_00080_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2eecd669b4d75cca",
+      "last_id": "2f29c48ae4fe0e9e"
+    },
+    {
+      "shard_id": 81,
+      "shard_name": "shard_00081",
+      "emb_file": "shard_00081_emb.npy",
+      "meta_file": "shard_00081_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2f2e893e3b781f46",
+      "last_id": "2fc65dd85466f3c9"
+    },
+    {
+      "shard_id": 82,
+      "shard_name": "shard_00082",
+      "emb_file": "shard_00082_emb.npy",
+      "meta_file": "shard_00082_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "2fc2fe44e9c36d29",
+      "last_id": "3088782454063cfd"
+    },
+    {
+      "shard_id": 83,
+      "shard_name": "shard_00083",
+      "emb_file": "shard_00083_emb.npy",
+      "meta_file": "shard_00083_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "308fb15754b99104",
+      "last_id": "311fd0e5f87befd4"
+    },
+    {
+      "shard_id": 84,
+      "shard_name": "shard_00084",
+      "emb_file": "shard_00084_emb.npy",
+      "meta_file": "shard_00084_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "311b055b80503df1",
+      "last_id": "31a348de5de6c601"
+    },
+    {
+      "shard_id": 85,
+      "shard_name": "shard_00085",
+      "emb_file": "shard_00085_emb.npy",
+      "meta_file": "shard_00085_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "31a4acf9a268e626",
+      "last_id": "323bdc9c573fdb82"
+    },
+    {
+      "shard_id": 86,
+      "shard_name": "shard_00086",
+      "emb_file": "shard_00086_emb.npy",
+      "meta_file": "shard_00086_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "32396f5b6e6abe29",
+      "last_id": "331f2af6b126dc17"
+    },
+    {
+      "shard_id": 87,
+      "shard_name": "shard_00087",
+      "emb_file": "shard_00087_emb.npy",
+      "meta_file": "shard_00087_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "331fae49ff6b6b90",
+      "last_id": "33800e33f1517d7d"
+    },
+    {
+      "shard_id": 88,
+      "shard_name": "shard_00088",
+      "emb_file": "shard_00088_emb.npy",
+      "meta_file": "shard_00088_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "341b69390dc548e7",
+      "last_id": "34a80d37099f06c8"
+    },
+    {
+      "shard_id": 89,
+      "shard_name": "shard_00089",
+      "emb_file": "shard_00089_emb.npy",
+      "meta_file": "shard_00089_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "34a7fe772f58a223",
+      "last_id": "34ca2871484a02cc"
+    },
+    {
+      "shard_id": 90,
+      "shard_name": "shard_00090",
+      "emb_file": "shard_00090_emb.npy",
+      "meta_file": "shard_00090_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "34c3efe7595b24cf",
+      "last_id": "3562f76b98ce8bd6"
+    },
+    {
+      "shard_id": 91,
+      "shard_name": "shard_00091",
+      "emb_file": "shard_00091_emb.npy",
+      "meta_file": "shard_00091_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "356167a3cad60808",
+      "last_id": "35c9abf0fa702b0f"
+    },
+    {
+      "shard_id": 92,
+      "shard_name": "shard_00092",
+      "emb_file": "shard_00092_emb.npy",
+      "meta_file": "shard_00092_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "35ca9b06484216ac",
+      "last_id": "371d701f7a03ee3e"
+    },
+    {
+      "shard_id": 93,
+      "shard_name": "shard_00093",
+      "emb_file": "shard_00093_emb.npy",
+      "meta_file": "shard_00093_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3715fb40ba9589f6",
+      "last_id": "379a709b899fecbf"
+    },
+    {
+      "shard_id": 94,
+      "shard_name": "shard_00094",
+      "emb_file": "shard_00094_emb.npy",
+      "meta_file": "shard_00094_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "379bfb3e2845cfb9",
+      "last_id": "381ce6aecc08f344"
+    },
+    {
+      "shard_id": 95,
+      "shard_name": "shard_00095",
+      "emb_file": "shard_00095_emb.npy",
+      "meta_file": "shard_00095_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3814d0e1d7a6ed5d",
+      "last_id": "38693d3a9007d36e"
+    },
+    {
+      "shard_id": 96,
+      "shard_name": "shard_00096",
+      "emb_file": "shard_00096_emb.npy",
+      "meta_file": "shard_00096_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "386ac863cf232f23",
+      "last_id": "38d08ccb5a970771"
+    },
+    {
+      "shard_id": 97,
+      "shard_name": "shard_00097",
+      "emb_file": "shard_00097_emb.npy",
+      "meta_file": "shard_00097_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "38dc184557779c02",
+      "last_id": "3a4766d9c7b4ee24"
+    },
+    {
+      "shard_id": 98,
+      "shard_name": "shard_00098",
+      "emb_file": "shard_00098_emb.npy",
+      "meta_file": "shard_00098_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3a4c475e1929a023",
+      "last_id": "3ab2f4443c8dbce9"
+    },
+    {
+      "shard_id": 99,
+      "shard_name": "shard_00099",
+      "emb_file": "shard_00099_emb.npy",
+      "meta_file": "shard_00099_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3ab02dd3fd677feb",
+      "last_id": "3b233a160ad451ed"
+    },
+    {
+      "shard_id": 100,
+      "shard_name": "shard_00100",
+      "emb_file": "shard_00100_emb.npy",
+      "meta_file": "shard_00100_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3b2e6930500cd8d4",
+      "last_id": "3bd11fc357c37436"
+    },
+    {
+      "shard_id": 101,
+      "shard_name": "shard_00101",
+      "emb_file": "shard_00101_emb.npy",
+      "meta_file": "shard_00101_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "3bd47b294b88f658",
+      "last_id": "3c7a1170ef6f72bf"
+    },
+    {
+      "shard_id": 102,
+      "shard_name": "shard_00102",
+      "emb_file": "shard_00102_emb.npy",
+      "meta_file": "shard_00102_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3c73918acc0c0c5a",
+      "last_id": "3d1ff80eedc5650c"
+    },
+    {
+      "shard_id": 103,
+      "shard_name": "shard_00103",
+      "emb_file": "shard_00103_emb.npy",
+      "meta_file": "shard_00103_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3d19df03e4e3393e",
+      "last_id": "3d950f0885fc2c53"
+    },
+    {
+      "shard_id": 104,
+      "shard_name": "shard_00104",
+      "emb_file": "shard_00104_emb.npy",
+      "meta_file": "shard_00104_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3d9d942a34c7852e",
+      "last_id": "3e6c6fec28b4abad"
+    },
+    {
+      "shard_id": 105,
+      "shard_name": "shard_00105",
+      "emb_file": "shard_00105_emb.npy",
+      "meta_file": "shard_00105_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3e6b3fca9ab8c338",
+      "last_id": "3e8a2209a69f92f6"
+    },
+    {
+      "shard_id": 106,
+      "shard_name": "shard_00106",
+      "emb_file": "shard_00106_emb.npy",
+      "meta_file": "shard_00106_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "3e814f95d9240c40",
+      "last_id": "3ff116d993bd603d"
+    },
+    {
+      "shard_id": 107,
+      "shard_name": "shard_00107",
+      "emb_file": "shard_00107_emb.npy",
+      "meta_file": "shard_00107_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "3ff6eb9dfc251f49",
+      "last_id": "404483e5ad04cf39"
+    },
+    {
+      "shard_id": 108,
+      "shard_name": "shard_00108",
+      "emb_file": "shard_00108_emb.npy",
+      "meta_file": "shard_00108_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4048dece2e397203",
+      "last_id": "40b5db19090a97a1"
+    },
+    {
+      "shard_id": 109,
+      "shard_name": "shard_00109",
+      "emb_file": "shard_00109_emb.npy",
+      "meta_file": "shard_00109_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "40b2ed6c8025d2b4",
+      "last_id": "4167f32b8b2c0185"
+    },
+    {
+      "shard_id": 110,
+      "shard_name": "shard_00110",
+      "emb_file": "shard_00110_emb.npy",
+      "meta_file": "shard_00110_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "416018a84eb9d1cc",
+      "last_id": "4201cc10f8eb116b"
+    },
+    {
+      "shard_id": 111,
+      "shard_name": "shard_00111",
+      "emb_file": "shard_00111_emb.npy",
+      "meta_file": "shard_00111_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "420823db72ab453a",
+      "last_id": "42ee70d03b891b97"
+    },
+    {
+      "shard_id": 112,
+      "shard_name": "shard_00112",
+      "emb_file": "shard_00112_emb.npy",
+      "meta_file": "shard_00112_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "42e8b09928d04c8d",
+      "last_id": "43410414b9e886ff"
+    },
+    {
+      "shard_id": 113,
+      "shard_name": "shard_00113",
+      "emb_file": "shard_00113_emb.npy",
+      "meta_file": "shard_00113_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "434b22e1bcf58f3b",
+      "last_id": "439ce85e0671d7a7"
+    },
+    {
+      "shard_id": 114,
+      "shard_name": "shard_00114",
+      "emb_file": "shard_00114_emb.npy",
+      "meta_file": "shard_00114_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "439e27823908f2c0",
+      "last_id": "445a7f1cb6029836"
+    },
+    {
+      "shard_id": 115,
+      "shard_name": "shard_00115",
+      "emb_file": "shard_00115_emb.npy",
+      "meta_file": "shard_00115_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "44574584469d82e8",
+      "last_id": "4571436ea2f47c7d"
+    },
+    {
+      "shard_id": 116,
+      "shard_name": "shard_00116",
+      "emb_file": "shard_00116_emb.npy",
+      "meta_file": "shard_00116_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "457a4a9fac9ecb19",
+      "last_id": "46015e6b0754bd39"
+    },
+    {
+      "shard_id": 117,
+      "shard_name": "shard_00117",
+      "emb_file": "shard_00117_emb.npy",
+      "meta_file": "shard_00117_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4603bfb68bae54ac",
+      "last_id": "462e3f683c0d63d3"
+    },
+    {
+      "shard_id": 118,
+      "shard_name": "shard_00118",
+      "emb_file": "shard_00118_emb.npy",
+      "meta_file": "shard_00118_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "462ef2e1f2a7d259",
+      "last_id": "46b5b68a3e2a2063"
+    },
+    {
+      "shard_id": 119,
+      "shard_name": "shard_00119",
+      "emb_file": "shard_00119_emb.npy",
+      "meta_file": "shard_00119_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "46beccc979ff2f93",
+      "last_id": "478aca7be2072fa7"
+    },
+    {
+      "shard_id": 120,
+      "shard_name": "shard_00120",
+      "emb_file": "shard_00120_emb.npy",
+      "meta_file": "shard_00120_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "478dd11b08e06aba",
+      "last_id": "4872cabf907311e7"
+    },
+    {
+      "shard_id": 121,
+      "shard_name": "shard_00121",
+      "emb_file": "shard_00121_emb.npy",
+      "meta_file": "shard_00121_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "48779a407cb69194",
+      "last_id": "4938f3189e379d8f"
+    },
+    {
+      "shard_id": 122,
+      "shard_name": "shard_00122",
+      "emb_file": "shard_00122_emb.npy",
+      "meta_file": "shard_00122_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "493412b4b557ff11",
+      "last_id": "4943a5a87e0b0ccc"
+    },
+    {
+      "shard_id": 123,
+      "shard_name": "shard_00123",
+      "emb_file": "shard_00123_emb.npy",
+      "meta_file": "shard_00123_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4942efb55a429393",
+      "last_id": "49c0e1730cb52d19"
+    },
+    {
+      "shard_id": 124,
+      "shard_name": "shard_00124",
+      "emb_file": "shard_00124_emb.npy",
+      "meta_file": "shard_00124_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "49c58d577c387b3f",
+      "last_id": "4a842eafd13e8539"
+    },
+    {
+      "shard_id": 125,
+      "shard_name": "shard_00125",
+      "emb_file": "shard_00125_emb.npy",
+      "meta_file": "shard_00125_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "4a87a36922bd3986",
+      "last_id": "4ba795a87f809156"
+    },
+    {
+      "shard_id": 126,
+      "shard_name": "shard_00126",
+      "emb_file": "shard_00126_emb.npy",
+      "meta_file": "shard_00126_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4ba530b3d1cc2d84",
+      "last_id": "4bd3f477b6c57b8f"
+    },
+    {
+      "shard_id": 127,
+      "shard_name": "shard_00127",
+      "emb_file": "shard_00127_emb.npy",
+      "meta_file": "shard_00127_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4bd3f96007165509",
+      "last_id": "4c4a83f95cb12e3e"
+    },
+    {
+      "shard_id": 128,
+      "shard_name": "shard_00128",
+      "emb_file": "shard_00128_emb.npy",
+      "meta_file": "shard_00128_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4c4e01d1cf960446",
+      "last_id": "4d3f29f3ace00cdb"
+    },
+    {
+      "shard_id": 129,
+      "shard_name": "shard_00129",
+      "emb_file": "shard_00129_emb.npy",
+      "meta_file": "shard_00129_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "4d3e490478ff5a55",
+      "last_id": "4e193c451c0b4052"
+    },
+    {
+      "shard_id": 130,
+      "shard_name": "shard_00130",
+      "emb_file": "shard_00130_emb.npy",
+      "meta_file": "shard_00130_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4e1f3ff07afad53b",
+      "last_id": "4e9c3527a8a44f51"
+    },
+    {
+      "shard_id": 131,
+      "shard_name": "shard_00131",
+      "emb_file": "shard_00131_emb.npy",
+      "meta_file": "shard_00131_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4e97fec68b0f6016",
+      "last_id": "4f0d7b73eb68de7a"
+    },
+    {
+      "shard_id": 132,
+      "shard_name": "shard_00132",
+      "emb_file": "shard_00132_emb.npy",
+      "meta_file": "shard_00132_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4f0a320460caa686",
+      "last_id": "4f6efd131ea2665d"
+    },
+    {
+      "shard_id": 133,
+      "shard_name": "shard_00133",
+      "emb_file": "shard_00133_emb.npy",
+      "meta_file": "shard_00133_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "4f63330e09fdecba",
+      "last_id": "505318c9b319c8be"
+    },
+    {
+      "shard_id": 134,
+      "shard_name": "shard_00134",
+      "emb_file": "shard_00134_emb.npy",
+      "meta_file": "shard_00134_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "505901209cd01bc0",
+      "last_id": "511226c8b8ce13df"
+    },
+    {
+      "shard_id": 135,
+      "shard_name": "shard_00135",
+      "emb_file": "shard_00135_emb.npy",
+      "meta_file": "shard_00135_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5117b81a03a7ef16",
+      "last_id": "5190fead6ff20a00"
+    },
+    {
+      "shard_id": 136,
+      "shard_name": "shard_00136",
+      "emb_file": "shard_00136_emb.npy",
+      "meta_file": "shard_00136_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "519968f5cf986cbd",
+      "last_id": "5234546a7575e906"
+    },
+    {
+      "shard_id": 137,
+      "shard_name": "shard_00137",
+      "emb_file": "shard_00137_emb.npy",
+      "meta_file": "shard_00137_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5239d814937b26ad",
+      "last_id": "52dd57d271b28314"
+    },
+    {
+      "shard_id": 138,
+      "shard_name": "shard_00138",
+      "emb_file": "shard_00138_emb.npy",
+      "meta_file": "shard_00138_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "52de0ad17312c3dc",
+      "last_id": "5351ebb2e856ebb0"
+    },
+    {
+      "shard_id": 139,
+      "shard_name": "shard_00139",
+      "emb_file": "shard_00139_emb.npy",
+      "meta_file": "shard_00139_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "5357f558634df8d3",
+      "last_id": "541b3182534d96e7"
+    },
+    {
+      "shard_id": 140,
+      "shard_name": "shard_00140",
+      "emb_file": "shard_00140_emb.npy",
+      "meta_file": "shard_00140_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5412f6d962f3acb4",
+      "last_id": "5490cac9f5b70286"
+    },
+    {
+      "shard_id": 141,
+      "shard_name": "shard_00141",
+      "emb_file": "shard_00141_emb.npy",
+      "meta_file": "shard_00141_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "54971e0a6014ac62",
+      "last_id": "5505e9cce0c25dde"
+    },
+    {
+      "shard_id": 142,
+      "shard_name": "shard_00142",
+      "emb_file": "shard_00142_emb.npy",
+      "meta_file": "shard_00142_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5503f9cea2c0ad78",
+      "last_id": "55df7acc9b008ec0"
+    },
+    {
+      "shard_id": 143,
+      "shard_name": "shard_00143",
+      "emb_file": "shard_00143_emb.npy",
+      "meta_file": "shard_00143_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "55d546f695c10651",
+      "last_id": "57003d3e2dfd21ce"
+    },
+    {
+      "shard_id": 144,
+      "shard_name": "shard_00144",
+      "emb_file": "shard_00144_emb.npy",
+      "meta_file": "shard_00144_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5703fd718b45903f",
+      "last_id": "574f53b00a001b08"
+    },
+    {
+      "shard_id": 145,
+      "shard_name": "shard_00145",
+      "emb_file": "shard_00145_emb.npy",
+      "meta_file": "shard_00145_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5742a02ce84caf03",
+      "last_id": "57be0007c3fdb65a"
+    },
+    {
+      "shard_id": 146,
+      "shard_name": "shard_00146",
+      "emb_file": "shard_00146_emb.npy",
+      "meta_file": "shard_00146_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "57b49306100c1fd0",
+      "last_id": "586f809e255dd27c"
+    },
+    {
+      "shard_id": 147,
+      "shard_name": "shard_00147",
+      "emb_file": "shard_00147_emb.npy",
+      "meta_file": "shard_00147_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "586c12fc6a90bd60",
+      "last_id": "58d2a1fac3a59864"
+    },
+    {
+      "shard_id": 148,
+      "shard_name": "shard_00148",
+      "emb_file": "shard_00148_emb.npy",
+      "meta_file": "shard_00148_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "58de0326e67c8a7d",
+      "last_id": "5a25dc1e2d7a9601"
+    },
+    {
+      "shard_id": 149,
+      "shard_name": "shard_00149",
+      "emb_file": "shard_00149_emb.npy",
+      "meta_file": "shard_00149_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5a21c0cc24909a24",
+      "last_id": "5a471b7365a828b1"
+    },
+    {
+      "shard_id": 150,
+      "shard_name": "shard_00150",
+      "emb_file": "shard_00150_emb.npy",
+      "meta_file": "shard_00150_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5a439f446bad5235",
+      "last_id": "5ada17609e0ef65a"
+    },
+    {
+      "shard_id": 151,
+      "shard_name": "shard_00151",
+      "emb_file": "shard_00151_emb.npy",
+      "meta_file": "shard_00151_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5adbc9bf608d771b",
+      "last_id": "5b556291baadb335"
+    },
+    {
+      "shard_id": 152,
+      "shard_name": "shard_00152",
+      "emb_file": "shard_00152_emb.npy",
+      "meta_file": "shard_00152_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "5b59faacbf4202ef",
+      "last_id": "5c0dca7b9ddc338b"
+    },
+    {
+      "shard_id": 153,
+      "shard_name": "shard_00153",
+      "emb_file": "shard_00153_emb.npy",
+      "meta_file": "shard_00153_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5c77385e2ecb4354",
+      "last_id": "5ceb0f9378c84eea"
+    },
+    {
+      "shard_id": 154,
+      "shard_name": "shard_00154",
+      "emb_file": "shard_00154_emb.npy",
+      "meta_file": "shard_00154_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5ceb9c605a889725",
+      "last_id": "5db45c3b678bd65e"
+    },
+    {
+      "shard_id": 155,
+      "shard_name": "shard_00155",
+      "emb_file": "shard_00155_emb.npy",
+      "meta_file": "shard_00155_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5db4d807bfdc42b9",
+      "last_id": "5de65bb999e866e3"
+    },
+    {
+      "shard_id": 156,
+      "shard_name": "shard_00156",
+      "emb_file": "shard_00156_emb.npy",
+      "meta_file": "shard_00156_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5def723155172afc",
+      "last_id": "5e531568dcc77812"
+    },
+    {
+      "shard_id": 157,
+      "shard_name": "shard_00157",
+      "emb_file": "shard_00157_emb.npy",
+      "meta_file": "shard_00157_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "5e5ae0d45939bdb3",
+      "last_id": "5f7bb2f12d74d909"
+    },
+    {
+      "shard_id": 158,
+      "shard_name": "shard_00158",
+      "emb_file": "shard_00158_emb.npy",
+      "meta_file": "shard_00158_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "5f7d91c015cdfc76",
+      "last_id": "603c675d0e99ed4b"
+    },
+    {
+      "shard_id": 159,
+      "shard_name": "shard_00159",
+      "emb_file": "shard_00159_emb.npy",
+      "meta_file": "shard_00159_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6035395c2210c78c",
+      "last_id": "60c1038ccf75e855"
+    },
+    {
+      "shard_id": 160,
+      "shard_name": "shard_00160",
+      "emb_file": "shard_00160_emb.npy",
+      "meta_file": "shard_00160_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "60c3fdb617c4da62",
+      "last_id": "60eaee25abd2a035"
+    },
+    {
+      "shard_id": 161,
+      "shard_name": "shard_00161",
+      "emb_file": "shard_00161_emb.npy",
+      "meta_file": "shard_00161_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "60e96ee188e9ecf0",
+      "last_id": "6185838c2669ee5d"
+    },
+    {
+      "shard_id": 162,
+      "shard_name": "shard_00162",
+      "emb_file": "shard_00162_emb.npy",
+      "meta_file": "shard_00162_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "6180290a879af6d9",
+      "last_id": "62afe51afaf6766d"
+    },
+    {
+      "shard_id": 163,
+      "shard_name": "shard_00163",
+      "emb_file": "shard_00163_emb.npy",
+      "meta_file": "shard_00163_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "62aa8abe40402f98",
+      "last_id": "631d53a6828197d0"
+    },
+    {
+      "shard_id": 164,
+      "shard_name": "shard_00164",
+      "emb_file": "shard_00164_emb.npy",
+      "meta_file": "shard_00164_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6310276cfae28ebd",
+      "last_id": "63c5b8d2b3251193"
+    },
+    {
+      "shard_id": 165,
+      "shard_name": "shard_00165",
+      "emb_file": "shard_00165_emb.npy",
+      "meta_file": "shard_00165_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "63c96ecfbcd59260",
+      "last_id": "63f89e8e040ca2f4"
+    },
+    {
+      "shard_id": 166,
+      "shard_name": "shard_00166",
+      "emb_file": "shard_00166_emb.npy",
+      "meta_file": "shard_00166_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "63f9f3541d088d58",
+      "last_id": "64fa1387886d01c9"
+    },
+    {
+      "shard_id": 167,
+      "shard_name": "shard_00167",
+      "emb_file": "shard_00167_emb.npy",
+      "meta_file": "shard_00167_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "64f6fab08d5d8a4c",
+      "last_id": "65af906ca5b2e1f4"
+    },
+    {
+      "shard_id": 168,
+      "shard_name": "shard_00168",
+      "emb_file": "shard_00168_emb.npy",
+      "meta_file": "shard_00168_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "65a8aac6bf9353be",
+      "last_id": "663f0aff8024448c"
+    },
+    {
+      "shard_id": 169,
+      "shard_name": "shard_00169",
+      "emb_file": "shard_00169_emb.npy",
+      "meta_file": "shard_00169_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "663ed2c2e67c7b94",
+      "last_id": "66c1143b9329b2fa"
+    },
+    {
+      "shard_id": 170,
+      "shard_name": "shard_00170",
+      "emb_file": "shard_00170_emb.npy",
+      "meta_file": "shard_00170_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "66c1eaea31c75807",
+      "last_id": "66f7106aa5d38342"
+    },
+    {
+      "shard_id": 171,
+      "shard_name": "shard_00171",
+      "emb_file": "shard_00171_emb.npy",
+      "meta_file": "shard_00171_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "66f44073773ba68d",
+      "last_id": "67fd9fb285359afd"
+    },
+    {
+      "shard_id": 172,
+      "shard_name": "shard_00172",
+      "emb_file": "shard_00172_emb.npy",
+      "meta_file": "shard_00172_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "67f433d8f4fca0ca",
+      "last_id": "68a0c2582804b7b6"
+    },
+    {
+      "shard_id": 173,
+      "shard_name": "shard_00173",
+      "emb_file": "shard_00173_emb.npy",
+      "meta_file": "shard_00173_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "68acc4fa602978e1",
+      "last_id": "693d40ccbebf764a"
+    },
+    {
+      "shard_id": 174,
+      "shard_name": "shard_00174",
+      "emb_file": "shard_00174_emb.npy",
+      "meta_file": "shard_00174_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "693f8e4bce16206d",
+      "last_id": "69ce1c03f8813ce1"
+    },
+    {
+      "shard_id": 175,
+      "shard_name": "shard_00175",
+      "emb_file": "shard_00175_emb.npy",
+      "meta_file": "shard_00175_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "69ca6bd8229b4389",
+      "last_id": "6a530a91e0eef024"
+    },
+    {
+      "shard_id": 176,
+      "shard_name": "shard_00176",
+      "emb_file": "shard_00176_emb.npy",
+      "meta_file": "shard_00176_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "6a560c48859e73fa",
+      "last_id": "6b1adba48c3c2785"
+    },
+    {
+      "shard_id": 177,
+      "shard_name": "shard_00177",
+      "emb_file": "shard_00177_emb.npy",
+      "meta_file": "shard_00177_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6b1fe0264556b631",
+      "last_id": "6b9f67e0e73c6f28"
+    },
+    {
+      "shard_id": 178,
+      "shard_name": "shard_00178",
+      "emb_file": "shard_00178_emb.npy",
+      "meta_file": "shard_00178_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6b9b21cde9eff49b",
+      "last_id": "6c3fd6a27137a0a2"
+    },
+    {
+      "shard_id": 179,
+      "shard_name": "shard_00179",
+      "emb_file": "shard_00179_emb.npy",
+      "meta_file": "shard_00179_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6c3818d0331d296b",
+      "last_id": "6cd93dec88f122b3"
+    },
+    {
+      "shard_id": 180,
+      "shard_name": "shard_00180",
+      "emb_file": "shard_00180_emb.npy",
+      "meta_file": "shard_00180_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "6cd051ee1cc3a501",
+      "last_id": "6e175507dc115c82"
+    },
+    {
+      "shard_id": 181,
+      "shard_name": "shard_00181",
+      "emb_file": "shard_00181_emb.npy",
+      "meta_file": "shard_00181_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6e130ef11a22686d",
+      "last_id": "6e9af210ea38bcfa"
+    },
+    {
+      "shard_id": 182,
+      "shard_name": "shard_00182",
+      "emb_file": "shard_00182_emb.npy",
+      "meta_file": "shard_00182_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6e95310d412dae44",
+      "last_id": "6ee81179e3bb15ff"
+    },
+    {
+      "shard_id": 183,
+      "shard_name": "shard_00183",
+      "emb_file": "shard_00183_emb.npy",
+      "meta_file": "shard_00183_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6ee19fbed480917b",
+      "last_id": "6f617a7a41e5ed62"
+    },
+    {
+      "shard_id": 184,
+      "shard_name": "shard_00184",
+      "emb_file": "shard_00184_emb.npy",
+      "meta_file": "shard_00184_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "6f64be37ae559a2f",
+      "last_id": "6fdf925387fe1293"
+    },
+    {
+      "shard_id": 185,
+      "shard_name": "shard_00185",
+      "emb_file": "shard_00185_emb.npy",
+      "meta_file": "shard_00185_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "6fd8d6e0fe87fd5c",
+      "last_id": "7112876ceffe9aa6"
+    },
+    {
+      "shard_id": 186,
+      "shard_name": "shard_00186",
+      "emb_file": "shard_00186_emb.npy",
+      "meta_file": "shard_00186_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "711dbecf5f007b22",
+      "last_id": "71981903f9043ed7"
+    },
+    {
+      "shard_id": 187,
+      "shard_name": "shard_00187",
+      "emb_file": "shard_00187_emb.npy",
+      "meta_file": "shard_00187_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "719f623d5a5453a3",
+      "last_id": "71d862f0adbf5dea"
+    },
+    {
+      "shard_id": 188,
+      "shard_name": "shard_00188",
+      "emb_file": "shard_00188_emb.npy",
+      "meta_file": "shard_00188_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "71d8e7ce93867bcc",
+      "last_id": "725b5f53dd5cbf3d"
+    },
+    {
+      "shard_id": 189,
+      "shard_name": "shard_00189",
+      "emb_file": "shard_00189_emb.npy",
+      "meta_file": "shard_00189_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "725de14f7c93fe55",
+      "last_id": "73005404457afd6e"
+    },
+    {
+      "shard_id": 190,
+      "shard_name": "shard_00190",
+      "emb_file": "shard_00190_emb.npy",
+      "meta_file": "shard_00190_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "730c1bfd2cd99040",
+      "last_id": "7426b7c74be1ff32"
+    },
+    {
+      "shard_id": 191,
+      "shard_name": "shard_00191",
+      "emb_file": "shard_00191_emb.npy",
+      "meta_file": "shard_00191_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "742f49968549a61d",
+      "last_id": "74bb8a8582a9f252"
+    },
+    {
+      "shard_id": 192,
+      "shard_name": "shard_00192",
+      "emb_file": "shard_00192_emb.npy",
+      "meta_file": "shard_00192_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "74bb0c176d04d4b0",
+      "last_id": "7540411ff98b0f45"
+    },
+    {
+      "shard_id": 193,
+      "shard_name": "shard_00193",
+      "emb_file": "shard_00193_emb.npy",
+      "meta_file": "shard_00193_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "754500a219859e6c",
+      "last_id": "755242a5c61f1efe"
+    },
+    {
+      "shard_id": 194,
+      "shard_name": "shard_00194",
+      "emb_file": "shard_00194_emb.npy",
+      "meta_file": "shard_00194_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "755435042f747dc7",
+      "last_id": "767c63f3cc0fdc03"
+    },
+    {
+      "shard_id": 195,
+      "shard_name": "shard_00195",
+      "emb_file": "shard_00195_emb.npy",
+      "meta_file": "shard_00195_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "767962af83a300a4",
+      "last_id": "77267b7af274869b"
+    },
+    {
+      "shard_id": 196,
+      "shard_name": "shard_00196",
+      "emb_file": "shard_00196_emb.npy",
+      "meta_file": "shard_00196_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "77269cf300f0a110",
+      "last_id": "77b454fc4b5ec000"
+    },
+    {
+      "shard_id": 197,
+      "shard_name": "shard_00197",
+      "emb_file": "shard_00197_emb.npy",
+      "meta_file": "shard_00197_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "77b45b4a0f91c2ff",
+      "last_id": "7829d5b395850571"
+    },
+    {
+      "shard_id": 198,
+      "shard_name": "shard_00198",
+      "emb_file": "shard_00198_emb.npy",
+      "meta_file": "shard_00198_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "782a979180ce99c0",
+      "last_id": "788f724579630911"
+    },
+    {
+      "shard_id": 199,
+      "shard_name": "shard_00199",
+      "emb_file": "shard_00199_emb.npy",
+      "meta_file": "shard_00199_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "788028ffc94021ff",
+      "last_id": "79e1e274e3ceaa70"
+    },
+    {
+      "shard_id": 200,
+      "shard_name": "shard_00200",
+      "emb_file": "shard_00200_emb.npy",
+      "meta_file": "shard_00200_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "79e09ab06c69fe6c",
+      "last_id": "7a2f321f0dc8664c"
+    },
+    {
+      "shard_id": 201,
+      "shard_name": "shard_00201",
+      "emb_file": "shard_00201_emb.npy",
+      "meta_file": "shard_00201_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7a25d79235142330",
+      "last_id": "7ac5573be8ab70d8"
+    },
+    {
+      "shard_id": 202,
+      "shard_name": "shard_00202",
+      "emb_file": "shard_00202_emb.npy",
+      "meta_file": "shard_00202_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7acea944d5622016",
+      "last_id": "7b0f3d41b8a11b7f"
+    },
+    {
+      "shard_id": 203,
+      "shard_name": "shard_00203",
+      "emb_file": "shard_00203_emb.npy",
+      "meta_file": "shard_00203_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7b027b1697581225",
+      "last_id": "7b84e6d44d878b4c"
+    },
+    {
+      "shard_id": 204,
+      "shard_name": "shard_00204",
+      "emb_file": "shard_00204_emb.npy",
+      "meta_file": "shard_00204_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "7b8b9ede4d0bfbfd",
+      "last_id": "7ce3195acf6772d3"
+    },
+    {
+      "shard_id": 205,
+      "shard_name": "shard_00205",
+      "emb_file": "shard_00205_emb.npy",
+      "meta_file": "shard_00205_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7cea6868beb7bb6d",
+      "last_id": "7d2ce65f2c60e860"
+    },
+    {
+      "shard_id": 206,
+      "shard_name": "shard_00206",
+      "emb_file": "shard_00206_emb.npy",
+      "meta_file": "shard_00206_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7d2e02c35a5592cf",
+      "last_id": "7dca49a2be75c1a5"
+    },
+    {
+      "shard_id": 207,
+      "shard_name": "shard_00207",
+      "emb_file": "shard_00207_emb.npy",
+      "meta_file": "shard_00207_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7dc7354ae547e415",
+      "last_id": "7e5ea33049b1e991"
+    },
+    {
+      "shard_id": 208,
+      "shard_name": "shard_00208",
+      "emb_file": "shard_00208_emb.npy",
+      "meta_file": "shard_00208_meta.parquet",
+      "num_vectors": 10004,
+      "first_id": "7e5c5e9b512dfd30",
+      "last_id": "7f73e3790f9925f7"
+    },
+    {
+      "shard_id": 209,
+      "shard_name": "shard_00209",
+      "emb_file": "shard_00209_emb.npy",
+      "meta_file": "shard_00209_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7f794fe19b1d4e8a",
+      "last_id": "7fac988428735408"
+    },
+    {
+      "shard_id": 210,
+      "shard_name": "shard_00210",
+      "emb_file": "shard_00210_emb.npy",
+      "meta_file": "shard_00210_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "7faabe0dbfb053b0",
+      "last_id": "80320623af135fd2"
+    },
+    {
+      "shard_id": 211,
+      "shard_name": "shard_00211",
+      "emb_file": "shard_00211_emb.npy",
+      "meta_file": "shard_00211_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "8032a44de9c954a2",
+      "last_id": "80b4980bb3e5da37"
+    },
+    {
+      "shard_id": 212,
+      "shard_name": "shard_00212",
+      "emb_file": "shard_00212_emb.npy",
+      "meta_file": "shard_00212_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "80b1d77899e03615",
+      "last_id": "8188a4157523bdea"
+    },
+    {
+      "shard_id": 213,
+      "shard_name": "shard_00213",
+      "emb_file": "shard_00213_emb.npy",
+      "meta_file": "shard_00213_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "827a476d34695f63",
+      "last_id": "82eba9350c6851bb"
+    },
+    {
+      "shard_id": 214,
+      "shard_name": "shard_00214",
+      "emb_file": "shard_00214_emb.npy",
+      "meta_file": "shard_00214_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "82ee5b95a27e6106",
+      "last_id": "83277e729d991625"
+    },
+    {
+      "shard_id": 215,
+      "shard_name": "shard_00215",
+      "emb_file": "shard_00215_emb.npy",
+      "meta_file": "shard_00215_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "832cecf53085f1dc",
+      "last_id": "83bd55a2125117cf"
+    },
+    {
+      "shard_id": 216,
+      "shard_name": "shard_00216",
+      "emb_file": "shard_00216_emb.npy",
+      "meta_file": "shard_00216_meta.parquet",
+      "num_vectors": 10058,
+      "first_id": "83bbf8e7845eee70",
+      "last_id": "845aa88791248480"
+    },
+    {
+      "shard_id": 217,
+      "shard_name": "shard_00217",
+      "emb_file": "shard_00217_emb.npy",
+      "meta_file": "shard_00217_meta.parquet",
+      "num_vectors": 10132,
+      "first_id": "8450862ec8c0cfec",
+      "last_id": "8575a17da16cc67e"
+    },
+    {
+      "shard_id": 218,
+      "shard_name": "shard_00218",
+      "emb_file": "shard_00218_emb.npy",
+      "meta_file": "shard_00218_meta.parquet",
+      "num_vectors": 10240,
+      "first_id": "861ff415a99b035e",
+      "last_id": "8529ccfa1ce979e7"
+    },
+    {
+      "shard_id": 219,
+      "shard_name": "shard_00219",
+      "emb_file": "shard_00219_emb.npy",
+      "meta_file": "shard_00219_meta.parquet",
+      "num_vectors": 10644,
+      "first_id": "85256fac47395ce7",
+      "last_id": "863254f7a574efb3"
+    },
+    {
+      "shard_id": 220,
+      "shard_name": "shard_00220",
+      "emb_file": "shard_00220_emb.npy",
+      "meta_file": "shard_00220_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "86343c90082677cb",
+      "last_id": "86c65249cc467efe"
+    },
+    {
+      "shard_id": 221,
+      "shard_name": "shard_00221",
+      "emb_file": "shard_00221_emb.npy",
+      "meta_file": "shard_00221_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "86c9e677842cc046",
+      "last_id": "87e4c495ca0e605d"
+    },
+    {
+      "shard_id": 222,
+      "shard_name": "shard_00222",
+      "emb_file": "shard_00222_emb.npy",
+      "meta_file": "shard_00222_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "87eac16008224208",
+      "last_id": "88bb537de2b4b557"
+    },
+    {
+      "shard_id": 223,
+      "shard_name": "shard_00223",
+      "emb_file": "shard_00223_emb.npy",
+      "meta_file": "shard_00223_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "88b5175442bfa78f",
+      "last_id": "88e8e776a4723117"
+    },
+    {
+      "shard_id": 224,
+      "shard_name": "shard_00224",
+      "emb_file": "shard_00224_emb.npy",
+      "meta_file": "shard_00224_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "88e6276e673dc75f",
+      "last_id": "895d621024f2c90e"
+    },
+    {
+      "shard_id": 225,
+      "shard_name": "shard_00225",
+      "emb_file": "shard_00225_emb.npy",
+      "meta_file": "shard_00225_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "8952b92d44489c1e",
+      "last_id": "8aa11e7b64da7337"
+    },
+    {
+      "shard_id": 226,
+      "shard_name": "shard_00226",
+      "emb_file": "shard_00226_emb.npy",
+      "meta_file": "shard_00226_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8aaaa4915587505b",
+      "last_id": "8ad8ca506f12b97f"
+    },
+    {
+      "shard_id": 227,
+      "shard_name": "shard_00227",
+      "emb_file": "shard_00227_emb.npy",
+      "meta_file": "shard_00227_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8adff2887489be16",
+      "last_id": "8b4e94d953fbda74"
+    },
+    {
+      "shard_id": 228,
+      "shard_name": "shard_00228",
+      "emb_file": "shard_00228_emb.npy",
+      "meta_file": "shard_00228_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8b4de0e630a1d2e6",
+      "last_id": "8c04ce940a5005f6"
+    },
+    {
+      "shard_id": 229,
+      "shard_name": "shard_00229",
+      "emb_file": "shard_00229_emb.npy",
+      "meta_file": "shard_00229_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "8c0bff29575188e1",
+      "last_id": "8ceff7cfa248e3ba"
+    },
+    {
+      "shard_id": 230,
+      "shard_name": "shard_00230",
+      "emb_file": "shard_00230_emb.npy",
+      "meta_file": "shard_00230_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8ce4e602bb31df2d",
+      "last_id": "8db71fc8ae07de05"
+    },
+    {
+      "shard_id": 231,
+      "shard_name": "shard_00231",
+      "emb_file": "shard_00231_emb.npy",
+      "meta_file": "shard_00231_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8dbb889c5e015b9d",
+      "last_id": "8e5c23d6b3cd17ae"
+    },
+    {
+      "shard_id": 232,
+      "shard_name": "shard_00232",
+      "emb_file": "shard_00232_emb.npy",
+      "meta_file": "shard_00232_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8e5ac4a1ac9da216",
+      "last_id": "8e5f9c41cefcbf85"
+    },
+    {
+      "shard_id": 233,
+      "shard_name": "shard_00233",
+      "emb_file": "shard_00233_emb.npy",
+      "meta_file": "shard_00233_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "8e5f3254d152373b",
+      "last_id": "8f7123cbfe3a9872"
+    },
+    {
+      "shard_id": 234,
+      "shard_name": "shard_00234",
+      "emb_file": "shard_00234_emb.npy",
+      "meta_file": "shard_00234_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "8f7d77fafd0e65b5",
+      "last_id": "902dc447f401656b"
+    },
+    {
+      "shard_id": 235,
+      "shard_name": "shard_00235",
+      "emb_file": "shard_00235_emb.npy",
+      "meta_file": "shard_00235_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "902bd2d5c1fe174e",
+      "last_id": "90c740bb2b9710bc"
+    },
+    {
+      "shard_id": 236,
+      "shard_name": "shard_00236",
+      "emb_file": "shard_00236_emb.npy",
+      "meta_file": "shard_00236_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "90c65fb53050c8ca",
+      "last_id": "90f015695f69de07"
+    },
+    {
+      "shard_id": 237,
+      "shard_name": "shard_00237",
+      "emb_file": "shard_00237_emb.npy",
+      "meta_file": "shard_00237_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "90f70d37a6aeb561",
+      "last_id": "9274ca53f38a4f59"
+    },
+    {
+      "shard_id": 238,
+      "shard_name": "shard_00238",
+      "emb_file": "shard_00238_emb.npy",
+      "meta_file": "shard_00238_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "92706fae520d0b3a",
+      "last_id": "92a07ca02db6f13e"
+    },
+    {
+      "shard_id": 239,
+      "shard_name": "shard_00239",
+      "emb_file": "shard_00239_emb.npy",
+      "meta_file": "shard_00239_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "92ad89a3fdbea715",
+      "last_id": "933895d9c7175cb4"
+    },
+    {
+      "shard_id": 240,
+      "shard_name": "shard_00240",
+      "emb_file": "shard_00240_emb.npy",
+      "meta_file": "shard_00240_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9333608244d34f86",
+      "last_id": "93d33a7e8d86d43b"
+    },
+    {
+      "shard_id": 241,
+      "shard_name": "shard_00241",
+      "emb_file": "shard_00241_emb.npy",
+      "meta_file": "shard_00241_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "93d778fa47d295df",
+      "last_id": "94f38f4197f2b476"
+    },
+    {
+      "shard_id": 242,
+      "shard_name": "shard_00242",
+      "emb_file": "shard_00242_emb.npy",
+      "meta_file": "shard_00242_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "94f6937feb5a9f9e",
+      "last_id": "952cbcfb66d0aa97"
+    },
+    {
+      "shard_id": 243,
+      "shard_name": "shard_00243",
+      "emb_file": "shard_00243_emb.npy",
+      "meta_file": "shard_00243_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9528abba4cc77a4b",
+      "last_id": "95b7244bb84faaac"
+    },
+    {
+      "shard_id": 244,
+      "shard_name": "shard_00244",
+      "emb_file": "shard_00244_emb.npy",
+      "meta_file": "shard_00244_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "95b1b9b5a1bc7e66",
+      "last_id": "965659eb25f4e17e"
+    },
+    {
+      "shard_id": 245,
+      "shard_name": "shard_00245",
+      "emb_file": "shard_00245_emb.npy",
+      "meta_file": "shard_00245_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "96502e309e1253d1",
+      "last_id": "971871a00e95b183"
+    },
+    {
+      "shard_id": 246,
+      "shard_name": "shard_00246",
+      "emb_file": "shard_00246_emb.npy",
+      "meta_file": "shard_00246_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "97132d4434218e50",
+      "last_id": "9799845caf7a8a8e"
+    },
+    {
+      "shard_id": 247,
+      "shard_name": "shard_00247",
+      "emb_file": "shard_00247_emb.npy",
+      "meta_file": "shard_00247_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "97967fa8732132a7",
+      "last_id": "98368737fa58673f"
+    },
+    {
+      "shard_id": 248,
+      "shard_name": "shard_00248",
+      "emb_file": "shard_00248_emb.npy",
+      "meta_file": "shard_00248_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9832ee257bff170d",
+      "last_id": "98cd8c91576492f9"
+    },
+    {
+      "shard_id": 249,
+      "shard_name": "shard_00249",
+      "emb_file": "shard_00249_emb.npy",
+      "meta_file": "shard_00249_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "98c5eb0afbda25cc",
+      "last_id": "9a267a184f3f30c5"
+    },
+    {
+      "shard_id": 250,
+      "shard_name": "shard_00250",
+      "emb_file": "shard_00250_emb.npy",
+      "meta_file": "shard_00250_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9a26a362ab78bdd9",
+      "last_id": "9a4e2d9f2c5ee77a"
+    },
+    {
+      "shard_id": 251,
+      "shard_name": "shard_00251",
+      "emb_file": "shard_00251_emb.npy",
+      "meta_file": "shard_00251_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9a4faa89128cc850",
+      "last_id": "9ad83451e84780f2"
+    },
+    {
+      "shard_id": 252,
+      "shard_name": "shard_00252",
+      "emb_file": "shard_00252_emb.npy",
+      "meta_file": "shard_00252_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9ad3406950f69534",
+      "last_id": "9b543851a7ade487"
+    },
+    {
+      "shard_id": 253,
+      "shard_name": "shard_00253",
+      "emb_file": "shard_00253_emb.npy",
+      "meta_file": "shard_00253_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "9b5e4928fed48a8c",
+      "last_id": "9c7da40af0303dec"
+    },
+    {
+      "shard_id": 254,
+      "shard_name": "shard_00254",
+      "emb_file": "shard_00254_emb.npy",
+      "meta_file": "shard_00254_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9c7da3150d1702ca",
+      "last_id": "9ccdf682cdf7283d"
+    },
+    {
+      "shard_id": 255,
+      "shard_name": "shard_00255",
+      "emb_file": "shard_00255_emb.npy",
+      "meta_file": "shard_00255_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9ccc2cb0261d4b90",
+      "last_id": "9d3d69adaabb3507"
+    },
+    {
+      "shard_id": 256,
+      "shard_name": "shard_00256",
+      "emb_file": "shard_00256_emb.npy",
+      "meta_file": "shard_00256_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9d3f3050ebea39c3",
+      "last_id": "9dc211d2e1a744e6"
+    },
+    {
+      "shard_id": 257,
+      "shard_name": "shard_00257",
+      "emb_file": "shard_00257_emb.npy",
+      "meta_file": "shard_00257_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "9dcb3bdf2d0db7a3",
+      "last_id": "9f126555efb57923"
+    },
+    {
+      "shard_id": 258,
+      "shard_name": "shard_00258",
+      "emb_file": "shard_00258_emb.npy",
+      "meta_file": "shard_00258_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9f176d83d2105146",
+      "last_id": "9fb373147b6d7107"
+    },
+    {
+      "shard_id": 259,
+      "shard_name": "shard_00259",
+      "emb_file": "shard_00259_emb.npy",
+      "meta_file": "shard_00259_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9fb5ba3301929882",
+      "last_id": "9ffb45fe42589f83"
+    },
+    {
+      "shard_id": 260,
+      "shard_name": "shard_00260",
+      "emb_file": "shard_00260_emb.npy",
+      "meta_file": "shard_00260_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "9ff5ea36ce9fa526",
+      "last_id": "a05bed30d41eed5d"
+    },
+    {
+      "shard_id": 261,
+      "shard_name": "shard_00261",
+      "emb_file": "shard_00261_emb.npy",
+      "meta_file": "shard_00261_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "a0590a0aa8c74f9d",
+      "last_id": "a1a5e0b5061f84af"
+    },
+    {
+      "shard_id": 262,
+      "shard_name": "shard_00262",
+      "emb_file": "shard_00262_emb.npy",
+      "meta_file": "shard_00262_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a1a02ab86b7c6665",
+      "last_id": "a213ab3338c7480f"
+    },
+    {
+      "shard_id": 263,
+      "shard_name": "shard_00263",
+      "emb_file": "shard_00263_emb.npy",
+      "meta_file": "shard_00263_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a21742b31d558aed",
+      "last_id": "a26bc8e6a5f5ce0e"
+    },
+    {
+      "shard_id": 264,
+      "shard_name": "shard_00264",
+      "emb_file": "shard_00264_emb.npy",
+      "meta_file": "shard_00264_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a26606df671591cf",
+      "last_id": "a30a1d98931baa9e"
+    },
+    {
+      "shard_id": 265,
+      "shard_name": "shard_00265",
+      "emb_file": "shard_00265_emb.npy",
+      "meta_file": "shard_00265_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "a3065c319258caba",
+      "last_id": "a4487580c415c2f2"
+    },
+    {
+      "shard_id": 266,
+      "shard_name": "shard_00266",
+      "emb_file": "shard_00266_emb.npy",
+      "meta_file": "shard_00266_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a4499c15e9540645",
+      "last_id": "a49e23b8e7f07a50"
+    },
+    {
+      "shard_id": 267,
+      "shard_name": "shard_00267",
+      "emb_file": "shard_00267_emb.npy",
+      "meta_file": "shard_00267_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a499ec9de4b2e366",
+      "last_id": "a537cbe495827d2e"
+    },
+    {
+      "shard_id": 268,
+      "shard_name": "shard_00268",
+      "emb_file": "shard_00268_emb.npy",
+      "meta_file": "shard_00268_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a53f642bf686a662",
+      "last_id": "a5d2049096681635"
+    },
+    {
+      "shard_id": 269,
+      "shard_name": "shard_00269",
+      "emb_file": "shard_00269_emb.npy",
+      "meta_file": "shard_00269_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "a5ddedc6c51ca116",
+      "last_id": "a678e0c1e74bb217"
+    },
+    {
+      "shard_id": 270,
+      "shard_name": "shard_00270",
+      "emb_file": "shard_00270_emb.npy",
+      "meta_file": "shard_00270_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a67dd47133b96617",
+      "last_id": "a728320e42d2a5ce"
+    },
+    {
+      "shard_id": 271,
+      "shard_name": "shard_00271",
+      "emb_file": "shard_00271_emb.npy",
+      "meta_file": "shard_00271_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a728afe3a1a7430f",
+      "last_id": "a7ba4fbc58da02be"
+    },
+    {
+      "shard_id": 272,
+      "shard_name": "shard_00272",
+      "emb_file": "shard_00272_emb.npy",
+      "meta_file": "shard_00272_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a7b0919c5a4314ae",
+      "last_id": "a862470402aa7b32"
+    },
+    {
+      "shard_id": 273,
+      "shard_name": "shard_00273",
+      "emb_file": "shard_00273_emb.npy",
+      "meta_file": "shard_00273_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "a86ce48f31afe99d",
+      "last_id": "a914a7fa587f19f1"
+    },
+    {
+      "shard_id": 274,
+      "shard_name": "shard_00274",
+      "emb_file": "shard_00274_emb.npy",
+      "meta_file": "shard_00274_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a91e4158b95fa4de",
+      "last_id": "a9a28299744a147d"
+    },
+    {
+      "shard_id": 275,
+      "shard_name": "shard_00275",
+      "emb_file": "shard_00275_emb.npy",
+      "meta_file": "shard_00275_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "a9a86faeb306200e",
+      "last_id": "aa03075d5ec4c265"
+    },
+    {
+      "shard_id": 276,
+      "shard_name": "shard_00276",
+      "emb_file": "shard_00276_emb.npy",
+      "meta_file": "shard_00276_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "aa0922c814d80f37",
+      "last_id": "aa8bbcbd6bfb4cae"
+    },
+    {
+      "shard_id": 277,
+      "shard_name": "shard_00277",
+      "emb_file": "shard_00277_emb.npy",
+      "meta_file": "shard_00277_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "aa8922bdc5fdabf6",
+      "last_id": "abe048f154f5b534"
+    },
+    {
+      "shard_id": 278,
+      "shard_name": "shard_00278",
+      "emb_file": "shard_00278_emb.npy",
+      "meta_file": "shard_00278_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "abe5c7b8db2b6f08",
+      "last_id": "ac4df2899f318ee3"
+    },
+    {
+      "shard_id": 279,
+      "shard_name": "shard_00279",
+      "emb_file": "shard_00279_emb.npy",
+      "meta_file": "shard_00279_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "ac4815caa80d5999",
+      "last_id": "acc68515a3fba5d3"
+    },
+    {
+      "shard_id": 280,
+      "shard_name": "shard_00280",
+      "emb_file": "shard_00280_emb.npy",
+      "meta_file": "shard_00280_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "acc99b17102f4899",
+      "last_id": "ad5583a3b912e4bc"
+    },
+    {
+      "shard_id": 281,
+      "shard_name": "shard_00281",
+      "emb_file": "shard_00281_emb.npy",
+      "meta_file": "shard_00281_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "ad529b53b09469b5",
+      "last_id": "aea507b222e9dfed"
+    },
+    {
+      "shard_id": 282,
+      "shard_name": "shard_00282",
+      "emb_file": "shard_00282_emb.npy",
+      "meta_file": "shard_00282_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "aea0074f28be8dfd",
+      "last_id": "aef2dc1be513b00e"
+    },
+    {
+      "shard_id": 283,
+      "shard_name": "shard_00283",
+      "emb_file": "shard_00283_emb.npy",
+      "meta_file": "shard_00283_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "aef45b756733beb9",
+      "last_id": "af3b2ee495011425"
+    },
+    {
+      "shard_id": 284,
+      "shard_name": "shard_00284",
+      "emb_file": "shard_00284_emb.npy",
+      "meta_file": "shard_00284_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "af3c6eeba2554be6",
+      "last_id": "b0232214fd6d3287"
+    },
+    {
+      "shard_id": 285,
+      "shard_name": "shard_00285",
+      "emb_file": "shard_00285_emb.npy",
+      "meta_file": "shard_00285_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "b0201f2b5d3c27e3",
+      "last_id": "b12cbedda818d43f"
+    },
+    {
+      "shard_id": 286,
+      "shard_name": "shard_00286",
+      "emb_file": "shard_00286_emb.npy",
+      "meta_file": "shard_00286_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b124eef011c61dd6",
+      "last_id": "b1b741e3a7dd5b1f"
+    },
+    {
+      "shard_id": 287,
+      "shard_name": "shard_00287",
+      "emb_file": "shard_00287_emb.npy",
+      "meta_file": "shard_00287_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b1b466b362b602ff",
+      "last_id": "b214c60b73503e6d"
+    },
+    {
+      "shard_id": 288,
+      "shard_name": "shard_00288",
+      "emb_file": "shard_00288_emb.npy",
+      "meta_file": "shard_00288_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b219bb0e1c78eea1",
+      "last_id": "b2532b247409e715"
+    },
+    {
+      "shard_id": 289,
+      "shard_name": "shard_00289",
+      "emb_file": "shard_00289_emb.npy",
+      "meta_file": "shard_00289_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "b2546b715c071d85",
+      "last_id": "b3a41345b161d612"
+    },
+    {
+      "shard_id": 290,
+      "shard_name": "shard_00290",
+      "emb_file": "shard_00290_emb.npy",
+      "meta_file": "shard_00290_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b3a043e80ea40cdc",
+      "last_id": "b430c48aa8aa4005"
+    },
+    {
+      "shard_id": 291,
+      "shard_name": "shard_00291",
+      "emb_file": "shard_00291_emb.npy",
+      "meta_file": "shard_00291_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b43bada573d39919",
+      "last_id": "b44aaf553540924b"
+    },
+    {
+      "shard_id": 292,
+      "shard_name": "shard_00292",
+      "emb_file": "shard_00292_emb.npy",
+      "meta_file": "shard_00292_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b44dea00d952a600",
+      "last_id": "b530310f74f58092"
+    },
+    {
+      "shard_id": 293,
+      "shard_name": "shard_00293",
+      "emb_file": "shard_00293_emb.npy",
+      "meta_file": "shard_00293_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "b5362d640df5164b",
+      "last_id": "b618cce0f69d88eb"
+    },
+    {
+      "shard_id": 294,
+      "shard_name": "shard_00294",
+      "emb_file": "shard_00294_emb.npy",
+      "meta_file": "shard_00294_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b6129fbf9cf97293",
+      "last_id": "b6bad769cef4a5a4"
+    },
+    {
+      "shard_id": 295,
+      "shard_name": "shard_00295",
+      "emb_file": "shard_00295_emb.npy",
+      "meta_file": "shard_00295_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b6b273e87948b2fd",
+      "last_id": "b750cba7a3e1c060"
+    },
+    {
+      "shard_id": 296,
+      "shard_name": "shard_00296",
+      "emb_file": "shard_00296_emb.npy",
+      "meta_file": "shard_00296_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b7591274c6bed99b",
+      "last_id": "b75d39046d5b240a"
+    },
+    {
+      "shard_id": 297,
+      "shard_name": "shard_00297",
+      "emb_file": "shard_00297_emb.npy",
+      "meta_file": "shard_00297_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "b75fa758ffff3c0f",
+      "last_id": "b8e1f8c997487455"
+    },
+    {
+      "shard_id": 298,
+      "shard_name": "shard_00298",
+      "emb_file": "shard_00298_emb.npy",
+      "meta_file": "shard_00298_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b8e3dda3638a8591",
+      "last_id": "b930090e8e08be80"
+    },
+    {
+      "shard_id": 299,
+      "shard_name": "shard_00299",
+      "emb_file": "shard_00299_emb.npy",
+      "meta_file": "shard_00299_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b931c1ea3aa8eb2f",
+      "last_id": "b9c393425ea5ed17"
+    },
+    {
+      "shard_id": 300,
+      "shard_name": "shard_00300",
+      "emb_file": "shard_00300_emb.npy",
+      "meta_file": "shard_00300_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "b9ca9942ac313d7f",
+      "last_id": "ba5afa4ead7f1373"
+    },
+    {
+      "shard_id": 301,
+      "shard_name": "shard_00301",
+      "emb_file": "shard_00301_emb.npy",
+      "meta_file": "shard_00301_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "ba5c0f4733a8f89e",
+      "last_id": "bb70445abc4ef021"
+    },
+    {
+      "shard_id": 302,
+      "shard_name": "shard_00302",
+      "emb_file": "shard_00302_emb.npy",
+      "meta_file": "shard_00302_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "bb76844dd2749689",
+      "last_id": "bbaf4d3d159ad013"
+    },
+    {
+      "shard_id": 303,
+      "shard_name": "shard_00303",
+      "emb_file": "shard_00303_emb.npy",
+      "meta_file": "shard_00303_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "bbaf49f1eaad8f8b",
+      "last_id": "bc0862a0215d49b0"
+    },
+    {
+      "shard_id": 304,
+      "shard_name": "shard_00304",
+      "emb_file": "shard_00304_emb.npy",
+      "meta_file": "shard_00304_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "bc070d66c90ccaea",
+      "last_id": "bc850a6a44bc116e"
+    },
+    {
+      "shard_id": 305,
+      "shard_name": "shard_00305",
+      "emb_file": "shard_00305_emb.npy",
+      "meta_file": "shard_00305_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "bc85e268e7ce9fc6",
+      "last_id": "bdff9221928673bb"
+    },
+    {
+      "shard_id": 306,
+      "shard_name": "shard_00306",
+      "emb_file": "shard_00306_emb.npy",
+      "meta_file": "shard_00306_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "bdfeeb4edc13dfad",
+      "last_id": "be415fffd91ed22b"
+    },
+    {
+      "shard_id": 307,
+      "shard_name": "shard_00307",
+      "emb_file": "shard_00307_emb.npy",
+      "meta_file": "shard_00307_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "be489e90c250dd0b",
+      "last_id": "be9f429c9e6eb5a0"
+    },
+    {
+      "shard_id": 308,
+      "shard_name": "shard_00308",
+      "emb_file": "shard_00308_emb.npy",
+      "meta_file": "shard_00308_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "be9e9d7abb7e5ba5",
+      "last_id": "bf5472b2225e4d0a"
+    },
+    {
+      "shard_id": 309,
+      "shard_name": "shard_00309",
+      "emb_file": "shard_00309_emb.npy",
+      "meta_file": "shard_00309_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "bf56948691652d76",
+      "last_id": "c01d4a10067873af"
+    },
+    {
+      "shard_id": 310,
+      "shard_name": "shard_00310",
+      "emb_file": "shard_00310_emb.npy",
+      "meta_file": "shard_00310_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c01a70f98b824ba8",
+      "last_id": "c0e81f219cc4370b"
+    },
+    {
+      "shard_id": 311,
+      "shard_name": "shard_00311",
+      "emb_file": "shard_00311_emb.npy",
+      "meta_file": "shard_00311_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c0ec22e3b914a466",
+      "last_id": "c1362b40215c0e2b"
+    },
+    {
+      "shard_id": 312,
+      "shard_name": "shard_00312",
+      "emb_file": "shard_00312_emb.npy",
+      "meta_file": "shard_00312_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c13ec69ecdd85650",
+      "last_id": "c222cd1d11126e8b"
+    },
+    {
+      "shard_id": 313,
+      "shard_name": "shard_00313",
+      "emb_file": "shard_00313_emb.npy",
+      "meta_file": "shard_00313_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "c22747db3dfd3725",
+      "last_id": "c2ea6fc89dd7400e"
+    },
+    {
+      "shard_id": 314,
+      "shard_name": "shard_00314",
+      "emb_file": "shard_00314_emb.npy",
+      "meta_file": "shard_00314_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c2e3678ca55779bf",
+      "last_id": "c3b3141a700d90ea"
+    },
+    {
+      "shard_id": 315,
+      "shard_name": "shard_00315",
+      "emb_file": "shard_00315_emb.npy",
+      "meta_file": "shard_00315_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c3b39cc4780ca640",
+      "last_id": "c3ebee0ca7e0530c"
+    },
+    {
+      "shard_id": 316,
+      "shard_name": "shard_00316",
+      "emb_file": "shard_00316_emb.npy",
+      "meta_file": "shard_00316_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c3ef3fe54c219914",
+      "last_id": "c45266044255b515"
+    },
+    {
+      "shard_id": 317,
+      "shard_name": "shard_00317",
+      "emb_file": "shard_00317_emb.npy",
+      "meta_file": "shard_00317_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "c45d382aaff25ffa",
+      "last_id": "c5a4cea9b1d6b3f8"
+    },
+    {
+      "shard_id": 318,
+      "shard_name": "shard_00318",
+      "emb_file": "shard_00318_emb.npy",
+      "meta_file": "shard_00318_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c5a4ba2effc15cce",
+      "last_id": "c60449d4fbfa27d3"
+    },
+    {
+      "shard_id": 319,
+      "shard_name": "shard_00319",
+      "emb_file": "shard_00319_emb.npy",
+      "meta_file": "shard_00319_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c60fa5a9e939dba8",
+      "last_id": "c63c995108598fd1"
+    },
+    {
+      "shard_id": 320,
+      "shard_name": "shard_00320",
+      "emb_file": "shard_00320_emb.npy",
+      "meta_file": "shard_00320_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c63d560addea1097",
+      "last_id": "c6cbbdd8821a5b0f"
+    },
+    {
+      "shard_id": 321,
+      "shard_name": "shard_00321",
+      "emb_file": "shard_00321_emb.npy",
+      "meta_file": "shard_00321_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "c6cc9df9a289b0bc",
+      "last_id": "c7e6e1db8209a6f9"
+    },
+    {
+      "shard_id": 322,
+      "shard_name": "shard_00322",
+      "emb_file": "shard_00322_emb.npy",
+      "meta_file": "shard_00322_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c7e9b871afbb1503",
+      "last_id": "c8b95f7ff6f8fcc2"
+    },
+    {
+      "shard_id": 323,
+      "shard_name": "shard_00323",
+      "emb_file": "shard_00323_emb.npy",
+      "meta_file": "shard_00323_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c8b64896e5c564ce",
+      "last_id": "c8f345a68e795789"
+    },
+    {
+      "shard_id": 324,
+      "shard_name": "shard_00324",
+      "emb_file": "shard_00324_emb.npy",
+      "meta_file": "shard_00324_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "c8fd10f9b471f8bd",
+      "last_id": "c959f73a3f4137d9"
+    },
+    {
+      "shard_id": 325,
+      "shard_name": "shard_00325",
+      "emb_file": "shard_00325_emb.npy",
+      "meta_file": "shard_00325_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "c956bfef7475075c",
+      "last_id": "caa64f2e1aa8a7e6"
+    },
+    {
+      "shard_id": 326,
+      "shard_name": "shard_00326",
+      "emb_file": "shard_00326_emb.npy",
+      "meta_file": "shard_00326_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "caae98be4a40256b",
+      "last_id": "cb10d25a3d5abf08"
+    },
+    {
+      "shard_id": 327,
+      "shard_name": "shard_00327",
+      "emb_file": "shard_00327_emb.npy",
+      "meta_file": "shard_00327_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "cb14f9b85a7bee8e",
+      "last_id": "cb6c76466c86215b"
+    },
+    {
+      "shard_id": 328,
+      "shard_name": "shard_00328",
+      "emb_file": "shard_00328_emb.npy",
+      "meta_file": "shard_00328_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "cb6cfb8e4aa84470",
+      "last_id": "cc089184976819ad"
+    },
+    {
+      "shard_id": 329,
+      "shard_name": "shard_00329",
+      "emb_file": "shard_00329_emb.npy",
+      "meta_file": "shard_00329_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "cc0349e57aa74092",
+      "last_id": "ccf7cf9b3c13f23c"
+    },
+    {
+      "shard_id": 330,
+      "shard_name": "shard_00330",
+      "emb_file": "shard_00330_emb.npy",
+      "meta_file": "shard_00330_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "ccf1ef977577436e",
+      "last_id": "cd923688a51eddf1"
+    },
+    {
+      "shard_id": 331,
+      "shard_name": "shard_00331",
+      "emb_file": "shard_00331_emb.npy",
+      "meta_file": "shard_00331_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "cd904e698dadecf7",
+      "last_id": "ce64d1f0a59da0bf"
+    },
+    {
+      "shard_id": 332,
+      "shard_name": "shard_00332",
+      "emb_file": "shard_00332_emb.npy",
+      "meta_file": "shard_00332_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "ce63875d5265f9c5",
+      "last_id": "cedd6c3254781a5a"
+    },
+    {
+      "shard_id": 333,
+      "shard_name": "shard_00333",
+      "emb_file": "shard_00333_emb.npy",
+      "meta_file": "shard_00333_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "cedc9eeaa1d0f14b",
+      "last_id": "cfe3bdc50641c179"
+    },
+    {
+      "shard_id": 334,
+      "shard_name": "shard_00334",
+      "emb_file": "shard_00334_emb.npy",
+      "meta_file": "shard_00334_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "cfead3de2f7fef80",
+      "last_id": "d04ae284a9ed15d1"
+    },
+    {
+      "shard_id": 335,
+      "shard_name": "shard_00335",
+      "emb_file": "shard_00335_emb.npy",
+      "meta_file": "shard_00335_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "d040ade6b25780d7",
+      "last_id": "d0b55f53ac26d212"
+    },
+    {
+      "shard_id": 336,
+      "shard_name": "shard_00336",
+      "emb_file": "shard_00336_emb.npy",
+      "meta_file": "shard_00336_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "d0b12fe416f7a49b",
+      "last_id": "d15fa5338d71e6f2"
+    },
+    {
+      "shard_id": 337,
+      "shard_name": "shard_00337",
+      "emb_file": "shard_00337_emb.npy",
+      "meta_file": "shard_00337_meta.parquet",
+      "num_vectors": 10388,
+      "first_id": "d157b69ede84cd1c",
+      "last_id": "d2760cd4c3b09ad0"
+    },
+    {
+      "shard_id": 338,
+      "shard_name": "shard_00338",
+      "emb_file": "shard_00338_emb.npy",
+      "meta_file": "shard_00338_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "d27467870d2f4707",
+      "last_id": "d2ac7469f1d897f2"
+    },
+    {
+      "shard_id": 339,
+      "shard_name": "shard_00339",
+      "emb_file": "shard_00339_emb.npy",
+      "meta_file": "shard_00339_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "d2ae15b496e54dd4",
+      "last_id": "d33a9ab38b577ceb"
+    },
+    {
+      "shard_id": 340,
+      "shard_name": "shard_00340",
+      "emb_file": "shard_00340_emb.npy",
+      "meta_file": "shard_00340_meta.parquet",
+      "num_vectors": 10314,
+      "first_id": "d33abc19e9cf0799",
+      "last_id": "d3d415baad7e8303"
+    },
+    {
+      "shard_id": 341,
+      "shard_name": "shard_00341",
+      "emb_file": "shard_00341_emb.npy",
+      "meta_file": "shard_00341_meta.parquet",
+      "num_vectors": 10387,
+      "first_id": "d3db3503e815c08f",
+      "last_id": "d4ebd89083395f12"
+    },
+    {
+      "shard_id": 342,
+      "shard_name": "shard_00342",
+      "emb_file": "shard_00342_emb.npy",
+      "meta_file": "shard_00342_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d4e3ee494a852a8b",
+      "last_id": "d525f95abbee62d0"
+    },
+    {
+      "shard_id": 343,
+      "shard_name": "shard_00343",
+      "emb_file": "shard_00343_emb.npy",
+      "meta_file": "shard_00343_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d520952d3c9780d4",
+      "last_id": "d5bfc755523c12b1"
+    },
+    {
+      "shard_id": 344,
+      "shard_name": "shard_00344",
+      "emb_file": "shard_00344_emb.npy",
+      "meta_file": "shard_00344_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d5b8486996aa3159",
+      "last_id": "d65a5b4ae8ebdf96"
+    },
+    {
+      "shard_id": 345,
+      "shard_name": "shard_00345",
+      "emb_file": "shard_00345_emb.npy",
+      "meta_file": "shard_00345_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "d6521328c429bfba",
+      "last_id": "d7743da655d83311"
+    },
+    {
+      "shard_id": 346,
+      "shard_name": "shard_00346",
+      "emb_file": "shard_00346_emb.npy",
+      "meta_file": "shard_00346_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d7720a2b63d27703",
+      "last_id": "d79bcac8ad3f052e"
+    },
+    {
+      "shard_id": 347,
+      "shard_name": "shard_00347",
+      "emb_file": "shard_00347_emb.npy",
+      "meta_file": "shard_00347_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d79d2e2f9cbe3c93",
+      "last_id": "d83cb0a9748c0622"
+    },
+    {
+      "shard_id": 348,
+      "shard_name": "shard_00348",
+      "emb_file": "shard_00348_emb.npy",
+      "meta_file": "shard_00348_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "d832565efda4529c",
+      "last_id": "d8c0d3771ceeeae5"
+    },
+    {
+      "shard_id": 349,
+      "shard_name": "shard_00349",
+      "emb_file": "shard_00349_emb.npy",
+      "meta_file": "shard_00349_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "d8cceeead76de952",
+      "last_id": "da219bcbc4865bac"
+    },
+    {
+      "shard_id": 350,
+      "shard_name": "shard_00350",
+      "emb_file": "shard_00350_emb.npy",
+      "meta_file": "shard_00350_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "da21cf0c645c9c89",
+      "last_id": "da4d4403bfa50780"
+    },
+    {
+      "shard_id": 351,
+      "shard_name": "shard_00351",
+      "emb_file": "shard_00351_emb.npy",
+      "meta_file": "shard_00351_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "da44db89f0b5bc34",
+      "last_id": "dad11ea25bcc2fb0"
+    },
+    {
+      "shard_id": 352,
+      "shard_name": "shard_00352",
+      "emb_file": "shard_00352_emb.npy",
+      "meta_file": "shard_00352_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "dad0ed80acefbcae",
+      "last_id": "db5ee5b07ee8ca7f"
+    },
+    {
+      "shard_id": 353,
+      "shard_name": "shard_00353",
+      "emb_file": "shard_00353_emb.npy",
+      "meta_file": "shard_00353_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "db51492e27f77b8b",
+      "last_id": "dca748c356e67979"
+    },
+    {
+      "shard_id": 354,
+      "shard_name": "shard_00354",
+      "emb_file": "shard_00354_emb.npy",
+      "meta_file": "shard_00354_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "dca7c0c89a65ad47",
+      "last_id": "dcc5ad73e6fe6723"
+    },
+    {
+      "shard_id": 355,
+      "shard_name": "shard_00355",
+      "emb_file": "shard_00355_emb.npy",
+      "meta_file": "shard_00355_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "dccbad86fbe39373",
+      "last_id": "dd4c80a3301fdc62"
+    },
+    {
+      "shard_id": 356,
+      "shard_name": "shard_00356",
+      "emb_file": "shard_00356_emb.npy",
+      "meta_file": "shard_00356_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "dd452b77a4d5d702",
+      "last_id": "ddc5d3421eaeef86"
+    },
+    {
+      "shard_id": 357,
+      "shard_name": "shard_00357",
+      "emb_file": "shard_00357_emb.npy",
+      "meta_file": "shard_00357_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "ddcc4fc394a5196c",
+      "last_id": "df46aa6420a6142c"
+    },
+    {
+      "shard_id": 358,
+      "shard_name": "shard_00358",
+      "emb_file": "shard_00358_emb.npy",
+      "meta_file": "shard_00358_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "df460387ff7a940d",
+      "last_id": "df9833132d493824"
+    },
+    {
+      "shard_id": 359,
+      "shard_name": "shard_00359",
+      "emb_file": "shard_00359_emb.npy",
+      "meta_file": "shard_00359_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "df9d2208c43599b4",
+      "last_id": "dff9a5490cb794b1"
+    },
+    {
+      "shard_id": 360,
+      "shard_name": "shard_00360",
+      "emb_file": "shard_00360_emb.npy",
+      "meta_file": "shard_00360_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "dff88f8c78097cb0",
+      "last_id": "e054de6da0eae1df"
+    },
+    {
+      "shard_id": 361,
+      "shard_name": "shard_00361",
+      "emb_file": "shard_00361_emb.npy",
+      "meta_file": "shard_00361_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "e057234573c59d3c",
+      "last_id": "e174fadce8550b61"
+    },
+    {
+      "shard_id": 362,
+      "shard_name": "shard_00362",
+      "emb_file": "shard_00362_emb.npy",
+      "meta_file": "shard_00362_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e17b537a5f18fbc8",
+      "last_id": "e21c32c7ad61a718"
+    },
+    {
+      "shard_id": 363,
+      "shard_name": "shard_00363",
+      "emb_file": "shard_00363_emb.npy",
+      "meta_file": "shard_00363_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e2157d9320b55cfe",
+      "last_id": "e265df07f3a7932d"
+    },
+    {
+      "shard_id": 364,
+      "shard_name": "shard_00364",
+      "emb_file": "shard_00364_emb.npy",
+      "meta_file": "shard_00364_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e26f04d80ba4c7c1",
+      "last_id": "e361615fba3db48e"
+    },
+    {
+      "shard_id": 365,
+      "shard_name": "shard_00365",
+      "emb_file": "shard_00365_emb.npy",
+      "meta_file": "shard_00365_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "e361f6869828b8f2",
+      "last_id": "e41b5b9ac360c9eb"
+    },
+    {
+      "shard_id": 366,
+      "shard_name": "shard_00366",
+      "emb_file": "shard_00366_emb.npy",
+      "meta_file": "shard_00366_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e4129ed7fe8da50a",
+      "last_id": "e4923d9adffd4406"
+    },
+    {
+      "shard_id": 367,
+      "shard_name": "shard_00367",
+      "emb_file": "shard_00367_emb.npy",
+      "meta_file": "shard_00367_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e499255be94853a3",
+      "last_id": "e537242e4d53cfe8"
+    },
+    {
+      "shard_id": 368,
+      "shard_name": "shard_00368",
+      "emb_file": "shard_00368_emb.npy",
+      "meta_file": "shard_00368_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e53bdbbcadc24d26",
+      "last_id": "e5d32062c76b4533"
+    },
+    {
+      "shard_id": 369,
+      "shard_name": "shard_00369",
+      "emb_file": "shard_00369_emb.npy",
+      "meta_file": "shard_00369_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "e5d41a3eec085fbf",
+      "last_id": "e676c78a96fa3fba"
+    },
+    {
+      "shard_id": 370,
+      "shard_name": "shard_00370",
+      "emb_file": "shard_00370_emb.npy",
+      "meta_file": "shard_00370_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e67e4939239f09d5",
+      "last_id": "e72b56279c914171"
+    },
+    {
+      "shard_id": 371,
+      "shard_name": "shard_00371",
+      "emb_file": "shard_00371_emb.npy",
+      "meta_file": "shard_00371_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e72acd88b70293c3",
+      "last_id": "e7bc19584bb56edf"
+    },
+    {
+      "shard_id": 372,
+      "shard_name": "shard_00372",
+      "emb_file": "shard_00372_emb.npy",
+      "meta_file": "shard_00372_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e7b709ca1524580a",
+      "last_id": "e869d7ab1aaf2bc3"
+    },
+    {
+      "shard_id": 373,
+      "shard_name": "shard_00373",
+      "emb_file": "shard_00373_emb.npy",
+      "meta_file": "shard_00373_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "e8603a98cebe8ba6",
+      "last_id": "e974e3d408720d10"
+    },
+    {
+      "shard_id": 374,
+      "shard_name": "shard_00374",
+      "emb_file": "shard_00374_emb.npy",
+      "meta_file": "shard_00374_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e97e88289e2a8e2d",
+      "last_id": "e9a6be87a035e61a"
+    },
+    {
+      "shard_id": 375,
+      "shard_name": "shard_00375",
+      "emb_file": "shard_00375_emb.npy",
+      "meta_file": "shard_00375_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "e9a03e9a3e72281e",
+      "last_id": "ea0de443cb64043d"
+    },
+    {
+      "shard_id": 376,
+      "shard_name": "shard_00376",
+      "emb_file": "shard_00376_emb.npy",
+      "meta_file": "shard_00376_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ea0dea1b76cd8e2a",
+      "last_id": "ead31a4855f4a210"
+    },
+    {
+      "shard_id": 377,
+      "shard_name": "shard_00377",
+      "emb_file": "shard_00377_emb.npy",
+      "meta_file": "shard_00377_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "ead5f1b547971d83",
+      "last_id": "ebfbc6cc70681747"
+    },
+    {
+      "shard_id": 378,
+      "shard_name": "shard_00378",
+      "emb_file": "shard_00378_emb.npy",
+      "meta_file": "shard_00378_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ebf2339a176e4ff9",
+      "last_id": "ec4c6a44c3942465"
+    },
+    {
+      "shard_id": 379,
+      "shard_name": "shard_00379",
+      "emb_file": "shard_00379_emb.npy",
+      "meta_file": "shard_00379_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ec4f4a2fe88481f7",
+      "last_id": "eccee79a85e67494"
+    },
+    {
+      "shard_id": 380,
+      "shard_name": "shard_00380",
+      "emb_file": "shard_00380_emb.npy",
+      "meta_file": "shard_00380_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ecc6c75b6b816460",
+      "last_id": "ed5d8095d7b97f10"
+    },
+    {
+      "shard_id": 381,
+      "shard_name": "shard_00381",
+      "emb_file": "shard_00381_emb.npy",
+      "meta_file": "shard_00381_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "ed50cf28dd91d5c1",
+      "last_id": "ee1d5128e7500dfe"
+    },
+    {
+      "shard_id": 382,
+      "shard_name": "shard_00382",
+      "emb_file": "shard_00382_emb.npy",
+      "meta_file": "shard_00382_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ee1f09faba228a0f",
+      "last_id": "eee2a9e13e50862f"
+    },
+    {
+      "shard_id": 383,
+      "shard_name": "shard_00383",
+      "emb_file": "shard_00383_emb.npy",
+      "meta_file": "shard_00383_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "eeef3358366f6613",
+      "last_id": "ef3c829bfac70a57"
+    },
+    {
+      "shard_id": 384,
+      "shard_name": "shard_00384",
+      "emb_file": "shard_00384_emb.npy",
+      "meta_file": "shard_00384_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "ef32ccae560c500b",
+      "last_id": "efc04ad489cad8e5"
+    },
+    {
+      "shard_id": 385,
+      "shard_name": "shard_00385",
+      "emb_file": "shard_00385_emb.npy",
+      "meta_file": "shard_00385_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "efc14a0eab282434",
+      "last_id": "f1234db09fd6c4a6"
+    },
+    {
+      "shard_id": 386,
+      "shard_name": "shard_00386",
+      "emb_file": "shard_00386_emb.npy",
+      "meta_file": "shard_00386_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f126d24994da3ea8",
+      "last_id": "f14d6ba8188489a4"
+    },
+    {
+      "shard_id": 387,
+      "shard_name": "shard_00387",
+      "emb_file": "shard_00387_emb.npy",
+      "meta_file": "shard_00387_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f14a01d3fd6035f9",
+      "last_id": "f1dce4a2232125bf"
+    },
+    {
+      "shard_id": 388,
+      "shard_name": "shard_00388",
+      "emb_file": "shard_00388_emb.npy",
+      "meta_file": "shard_00388_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f1d971ba321aaa5f",
+      "last_id": "f255afa39330f737"
+    },
+    {
+      "shard_id": 389,
+      "shard_name": "shard_00389",
+      "emb_file": "shard_00389_emb.npy",
+      "meta_file": "shard_00389_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "f25c43c46bb8d84a",
+      "last_id": "f3a146b5c6bf7b82"
+    },
+    {
+      "shard_id": 390,
+      "shard_name": "shard_00390",
+      "emb_file": "shard_00390_emb.npy",
+      "meta_file": "shard_00390_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f3a9e53935b2914b",
+      "last_id": "f40a1aa1d236af37"
+    },
+    {
+      "shard_id": 391,
+      "shard_name": "shard_00391",
+      "emb_file": "shard_00391_emb.npy",
+      "meta_file": "shard_00391_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f40cc69473295aea",
+      "last_id": "f43d9d1a7e4d1c1a"
+    },
+    {
+      "shard_id": 392,
+      "shard_name": "shard_00392",
+      "emb_file": "shard_00392_emb.npy",
+      "meta_file": "shard_00392_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f43fbf2a6589d6e2",
+      "last_id": "f534d6ead92b6cd4"
+    },
+    {
+      "shard_id": 393,
+      "shard_name": "shard_00393",
+      "emb_file": "shard_00393_emb.npy",
+      "meta_file": "shard_00393_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "f53bdde0b116f755",
+      "last_id": "f616321c7104587d"
+    },
+    {
+      "shard_id": 394,
+      "shard_name": "shard_00394",
+      "emb_file": "shard_00394_emb.npy",
+      "meta_file": "shard_00394_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f618c039c4938a15",
+      "last_id": "f6b418a77b13ffaf"
+    },
+    {
+      "shard_id": 395,
+      "shard_name": "shard_00395",
+      "emb_file": "shard_00395_emb.npy",
+      "meta_file": "shard_00395_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f6b4ce2466bcec6e",
+      "last_id": "f6fd351344846860"
+    },
+    {
+      "shard_id": 396,
+      "shard_name": "shard_00396",
+      "emb_file": "shard_00396_emb.npy",
+      "meta_file": "shard_00396_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f6f513aa434a32e8",
+      "last_id": "f75162150e8b5720"
+    },
+    {
+      "shard_id": 397,
+      "shard_name": "shard_00397",
+      "emb_file": "shard_00397_emb.npy",
+      "meta_file": "shard_00397_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "f759a58f2ea22a07",
+      "last_id": "f8a775bb9245495c"
+    },
+    {
+      "shard_id": 398,
+      "shard_name": "shard_00398",
+      "emb_file": "shard_00398_emb.npy",
+      "meta_file": "shard_00398_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f8a20d6bc6905dae",
+      "last_id": "f93e21d5477c2d06"
+    },
+    {
+      "shard_id": 399,
+      "shard_name": "shard_00399",
+      "emb_file": "shard_00399_emb.npy",
+      "meta_file": "shard_00399_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f934d8c9166aae37",
+      "last_id": "f9c98b127c869e36"
+    },
+    {
+      "shard_id": 400,
+      "shard_name": "shard_00400",
+      "emb_file": "shard_00400_emb.npy",
+      "meta_file": "shard_00400_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "f9cd39d20e7dd111",
+      "last_id": "f9e7f92a150216c9"
+    },
+    {
+      "shard_id": 401,
+      "shard_name": "shard_00401",
+      "emb_file": "shard_00401_emb.npy",
+      "meta_file": "shard_00401_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "f9e52f68946f58dc",
+      "last_id": "faeaa3d0d50ba6e7"
+    },
+    {
+      "shard_id": 402,
+      "shard_name": "shard_00402",
+      "emb_file": "shard_00402_emb.npy",
+      "meta_file": "shard_00402_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "fae3067dcc72933d",
+      "last_id": "fb90041c1a7e8a63"
+    },
+    {
+      "shard_id": 403,
+      "shard_name": "shard_00403",
+      "emb_file": "shard_00403_emb.npy",
+      "meta_file": "shard_00403_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "fb9783b7d8caf3fa",
+      "last_id": "fc3e033b2788fc1d"
+    },
+    {
+      "shard_id": 404,
+      "shard_name": "shard_00404",
+      "emb_file": "shard_00404_emb.npy",
+      "meta_file": "shard_00404_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "fc3d0fdfb833a6bc",
+      "last_id": "fcd3eb2106178cd5"
+    },
+    {
+      "shard_id": 405,
+      "shard_name": "shard_00405",
+      "emb_file": "shard_00405_emb.npy",
+      "meta_file": "shard_00405_meta.parquet",
+      "num_vectors": 10386,
+      "first_id": "fcd361a09f9c3b1e",
+      "last_id": "fd75258ca566f668"
+    },
+    {
+      "shard_id": 406,
+      "shard_name": "shard_00406",
+      "emb_file": "shard_00406_emb.npy",
+      "meta_file": "shard_00406_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "fd795bc756940087",
+      "last_id": "fe2a03139e5aa5a9"
+    },
+    {
+      "shard_id": 407,
+      "shard_name": "shard_00407",
+      "emb_file": "shard_00407_emb.npy",
+      "meta_file": "shard_00407_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "fe2519c90d34e8b2",
+      "last_id": "febe9d7132cb8b86"
+    },
+    {
+      "shard_id": 408,
+      "shard_name": "shard_00408",
+      "emb_file": "shard_00408_emb.npy",
+      "meta_file": "shard_00408_meta.parquet",
+      "num_vectors": 10313,
+      "first_id": "febe175afba3173e",
+      "last_id": "ff5cc71b842ca52e"
+    },
+    {
+      "shard_id": 409,
+      "shard_name": "shard_00409",
+      "emb_file": "shard_00409_emb.npy",
+      "meta_file": "shard_00409_meta.parquet",
+      "num_vectors": 9362,
+      "first_id": "ff593889a336a6b5",
+      "last_id": "ff81bb1de63d3d88"
+    }
+  ],
+  "total_vectors": 4173658
+}

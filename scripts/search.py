@@ -42,6 +42,7 @@ def main():
     parser.add_argument("--nprobe", type=int, default=16, help="Number of IVF Voronoi cells to probe at query time")
     parser.add_argument("--rerank", action="store_true", help="Perform two-stage exact reranking on candidates")
     parser.add_argument("--rerank-candidates", type=int, default=50, help="Candidate pool size for two-stage rerank")
+    parser.add_argument("--geometric-rerank", action="store_true", help="Perform Stage-2 local feature geometric verification")
     parser.add_argument("--device", type=str, default=None, help="Device to use ('auto', 'cuda', 'mps', 'cpu')")
     parser.add_argument("--pretrained", type=str, default=None, help="Pretrained weights tag (e.g. openai, none)")
     parser.add_argument("--exclude-image-id", type=str, default=None, help="Exclude specific image ID from results")
@@ -177,13 +178,42 @@ def main():
         if len(retrieved_matches) >= args.top_k:
             break
 
+    # Optional Stage-2 Geometric Verification
+    geom_time = 0.0
+    if args.geometric_rerank:
+        if not args.query_image:
+            logger.warning("Geometric verification is only applicable to image queries (--query-image). Skipping.")
+        else:
+            try:
+                from src.reranking.pipeline import GeometricReranker
+                logger.info("Executing Stage-2 Geometric Verification reranker...")
+                t_g_start = time.time()
+                reranker = GeometricReranker()
+                with Image.open(Path(args.query_image)) as q_img:
+                    retrieved_matches = reranker.rerank(
+                        query_image=q_img.convert("RGB"),
+                        candidates=retrieved_matches,
+                        top_k=args.top_k,
+                    )
+                geom_time = time.time() - t_g_start
+                logger.info("Geometric verification finished in %.2f ms", geom_time * 1000.0)
+            except ImportError:
+                logger.warning("src.reranking module not found. Skipping geometric verification.")
+            except Exception as e:
+                logger.warning("Geometric verification encountered an error: %s. Using coarse ranks.", e)
+
     # 9. Perform similarity-weighted voting
     voting_result = compute_similarity_weighted_votes(retrieved_matches)
 
     # 10. Display Results
     print("\n" + "=" * 90)
     print(f" VISUAL LANDMARK SEARCH RESULTS ({query_desc})")
-    print(f" IVF-PQ nprobe: {args.nprobe} | Latency: {search_time * 1000:.2f} ms search ({emb_time * 1000:.2f} ms embedding)")
+    timing_str = f"Latency: {search_time * 1000:.2f} ms search ({emb_time * 1000:.2f} ms embedding"
+    if geom_time > 0:
+        timing_str += f", {geom_time * 1000:.2f} ms geometric verification)"
+    else:
+        timing_str += ")"
+    print(f" IVF-PQ nprobe: {args.nprobe} | {timing_str}")
     print("=" * 90)
 
     print(f"\n{'Rank':<5} {'Score':<8} {'Landmark Name':<32} {'Landmark ID':<14} {'Image ID':<14} {'Split'}")
@@ -191,7 +221,9 @@ def main():
     for m in retrieved_matches:
         resolved_marker = "" if m["is_resolved"] else " [unresolved]"
         name_str = f"{m['landmark_name']}{resolved_marker}"[:31]
-        print(f"{m['rank']:<5} {m['score']:<8.4f} {name_str:<32} {m['landmark_id']:<14} {m['image_id']:<14} {m['split']}")
+        score_val = m.get("final_score", m["score"])
+        verified_tag = " [✓geom]" if m.get("geometric_verified") else ""
+        print(f"{m['rank']:<5} {score_val:<8.4f} {name_str:<32} {m['landmark_id']:<14} {m['image_id']:<14} {m['split']}{verified_tag}")
 
     # Display Voting Summary
     print("\n" + "-" * 90)

@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-10-16T05:10:19Z",
+  "total_indexed_vectors": 303,
+  "exact_baseline_vectors": 303,
+  "num_queries": 20,
+  "index_size_mb": 0.54,
+  "sweep_results": [
+    {
+      "nprobe": 1,
+      "ann_recall_at_1": 0.4,
+      "ann_recall_at_5": 0.71,
+      "ann_recall_at_10": 0.94,
+      "landmark_acc_at_1": 1.0,
+      "landmark_acc_at_5": 1.0,
+      "latency_ms": {
+        "mean": 0.08,
+        "median": 0.08,
+        "p95": 0.08
+      }
+    },
+    {
+      "nprobe": 4,
+      "ann_recall_at_1": 0.4,
+      "ann_recall_at_5": 0.71,
+      "ann_recall_at_10": 0.94,
+      "landmark_acc_at_1": 1.0,
+      "landmark_acc_at_5": 1.0,
+      "latency_ms": {
+        "mean": 0.08,
+        "median": 0.08,
+        "p95": 0.08
+      }
+    },
+    {
+      "nprobe": 8,
+      "ann_recall_at_1": 0.4,
+      "ann_recall_at_5": 0.71,
+      "ann_recall_at_10": 0.94,
+      "landmark_acc_at_1": 1.0,
+      "landmark_acc_at_5": 1.0,
+      "latency_ms": {
+        "mean": 0.08,
+        "median": 0.08,
+        "p95": 0.08
+      }
+    },
+    {
+      "nprobe": 16,
+      "ann_recall_at_1": 0.4,
+      "ann_recall_at_5": 0.71,
+      "ann_recall_at_10": 0.94,
+      "landmark_acc_at_1": 1.0,
+      "landmark_acc_at_5": 1.0,
+      "latency_ms": {
+        "mean": 0.09,
+        "median": 0.08,
+        "p95": 0.1
+      }
+    }
+  ]
+}
