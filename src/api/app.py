@@ -53,6 +53,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount rendered keypoint match visualizations directly
+VIS_DIR = PROJECT_ROOT / "outputs" / "visualizations"
+VIS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/visualizations", StaticFiles(directory=str(VIS_DIR)), name="visualizations")
+
 # Mount static web assets
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -63,14 +68,15 @@ class TextSearchRequest(BaseModel):
     query: str = Field(..., min_length=1, description="Natural language prompt describing the landmark")
     top_k: int = Field(10, ge=1, le=100, description="Number of results to retrieve")
     nprobe: int = Field(64, ge=1, le=256, description="Number of IVF Voronoi clusters to probe")
-    index_type: str = Field("ivfpq", description="Vector index algorithm: 'ivfpq' or 'hnswpq'")
+    index_type: str = Field("ivfpq", description="Vector index algorithm: 'ivfpq', 'hnswpq', or 'ensemble'")
     ef_search: int = Field(64, ge=1, le=512, description="Exploration depth for HNSW graph search")
     rerank: bool = Field(False, description="Whether to apply two-stage exact re-ranking")
+    alpha_qe: bool = Field(False, description="Whether to apply α-Query Expansion")
 
 
 @app.get("/")
 @app.head("/")
-async def root():
+def root():
     """Serve the single-page frontend interface."""
     index_file = STATIC_DIR / "index.html"
     if not index_file.is_file():
@@ -83,13 +89,13 @@ async def root():
 
 
 @app.get("/api/info")
-async def get_system_info():
+def get_system_info():
     """Return runtime metadata, index metrics, and device details."""
     return search_service.get_info()
 
 
 @app.post("/api/search/text")
-async def search_by_text(req: TextSearchRequest):
+def search_by_text(req: TextSearchRequest):
     """Retrieve nearest landmark images given a natural language text query."""
     if not search_service.is_ready:
         raise HTTPException(status_code=503, detail="Search service is still warming up.")
@@ -102,6 +108,7 @@ async def search_by_text(req: TextSearchRequest):
             index_type=req.index_type,
             ef_search=req.ef_search,
             rerank=req.rerank,
+            alpha_qe=req.alpha_qe,
         )
         return results
     except Exception as e:
@@ -110,14 +117,14 @@ async def search_by_text(req: TextSearchRequest):
 
 
 @app.post("/api/search/image")
-async def search_by_image(
+def search_by_image(
     file: UploadFile = File(...),
     top_k: int = Form(10),
     nprobe: int = Form(64),
     index_type: str = Form("ivfpq"),
     ef_search: int = Form(64),
     rerank: bool = Form(False),
-    rerank_geometric: bool = Form(False),
+    alpha_qe: bool = Form(False),
 ):
     """Upload a query photo to retrieve nearest landmark matches."""
     if not search_service.is_ready:
@@ -131,7 +138,7 @@ async def search_by_image(
         )
 
     try:
-        image_bytes = await file.read()
+        image_bytes = file.file.read()
         if len(image_bytes) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
@@ -143,9 +150,10 @@ async def search_by_image(
             index_type=index_type,
             ef_search=ef_search,
             rerank=rerank,
-            rerank_geometric=rerank_geometric,
+            alpha_qe=alpha_qe,
         )
         return results
+
     except Exception as e:
         logger.exception("Image search error: %s", e)
         raise HTTPException(status_code=500, detail=str(e))

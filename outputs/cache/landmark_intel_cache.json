@@ -1,0 +1,232 @@
+{
+  "eiffel tower": {
+    "prominent_attraction": "Eiffel Tower",
+    "specific_subject": "Eiffel Tower",
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.8584,
+    "longitude": 2.2945,
+    "summary": "Constructed in 1889 for the Exposition Universelle, the Eiffel Tower is the quintessential global icon of Paris and France, standing 330 meters tall on the Champ de Mars.",
+    "search_query": "Eiffel Tower Paris France"
+  },
+  "eiffel tower in paris": {
+    "prominent_attraction": "Eiffel Tower",
+    "specific_subject": "Eiffel Tower",
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.8584,
+    "longitude": 2.2945,
+    "summary": "Constructed in 1889 for the Exposition Universelle, the Eiffel Tower is the quintessential global icon of Paris and France, standing 330 meters tall on the Champ de Mars.",
+    "search_query": "Eiffel Tower Paris France"
+  },
+  "taj mahal": {
+    "prominent_attraction": "Taj Mahal",
+    "specific_subject": "Taj Mahal",
+    "city": "Agra",
+    "country": "India",
+    "latitude": 27.1751,
+    "longitude": 78.0421,
+    "summary": "An ivory-white marble mausoleum on the south bank of the Yamuna river in Agra, commissioned in 1631 by Mughal emperor Shah Jahan to house the tomb of his favorite wife, Mumtaz Mahal.",
+    "search_query": "Taj Mahal Agra India"
+  },
+  "taj mahal in india": {
+    "prominent_attraction": "Taj Mahal",
+    "specific_subject": "Taj Mahal",
+    "city": "Agra",
+    "country": "India",
+    "latitude": 27.1751,
+    "longitude": 78.0421,
+    "summary": "An ivory-white marble mausoleum on the south bank of the Yamuna river in Agra, commissioned in 1631 by Mughal emperor Shah Jahan to house the tomb of his favorite wife, Mumtaz Mahal.",
+    "search_query": "Taj Mahal Agra India"
+  },
+  "colosseum": {
+    "prominent_attraction": "Colosseum",
+    "specific_subject": "Colosseum",
+    "city": "Rome",
+    "country": "Italy",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "summary": "The largest ancient amphitheatre ever built, constructed in 70-80 AD under the Flavian emperors in the center of Rome, hosting gladiatorial games and spectacles.",
+    "search_query": "Colosseum Rome Italy"
+  },
+  "colosseum in rome": {
+    "prominent_attraction": "Colosseum",
+    "specific_subject": "Colosseum",
+    "city": "Rome",
+    "country": "Italy",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "summary": "The largest ancient amphitheatre ever built, constructed in 70-80 AD under the Flavian emperors in the center of Rome, hosting gladiatorial games and spectacles.",
+    "search_query": "Colosseum Rome Italy"
+  },
+  "golden gate bridge": {
+    "prominent_attraction": "Golden Gate Bridge",
+    "specific_subject": "Golden Gate Bridge",
+    "city": "San Francisco",
+    "country": "United States",
+    "latitude": 37.8199,
+    "longitude": -122.4783,
+    "summary": "An internationally recognized suspension bridge spanning the Golden Gate strait between San Francisco and Marin County, famed for its Art Deco design and International Orange color.",
+    "search_query": "Golden Gate Bridge San Francisco"
+  },
+  "golden gate bridge in san francisco": {
+    "prominent_attraction": "Golden Gate Bridge",
+    "specific_subject": "Golden Gate Bridge",
+    "city": "San Francisco",
+    "country": "United States",
+    "latitude": 37.8199,
+    "longitude": -122.4783,
+    "summary": "An internationally recognized suspension bridge spanning the Golden Gate strait between San Francisco and Marin County, famed for its Art Deco design and International Orange color.",
+    "search_query": "Golden Gate Bridge San Francisco"
+  },
+  "sydney opera house": {
+    "prominent_attraction": "Sydney Opera House",
+    "specific_subject": "Sydney Opera House",
+    "city": "Sydney",
+    "country": "Australia",
+    "latitude": -33.8568,
+    "longitude": 151.2153,
+    "summary": "A multi-venue performing arts centre in Sydney Harbor designed by Danish architect Jørn Utzon, world-renowned for its distinctive expressionist sail-shaped shell roofs.",
+    "search_query": "Sydney Opera House Australia"
+  },
+  "saint basil's cathedral": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Monument to Minin and Pozharsky",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Standing majestically on Moscow's Red Square, Saint Basil's Cathedral is world-renowned for its colorful onion domes. Directly in front stands the 1818 bronze monument to Kuzma Minin and Dmitry Pozharsky.",
+    "search_query": "Saint Basil Cathedral Moscow Russia"
+  },
+  "monument to minin and pozharsky": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Monument to Minin and Pozharsky",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Standing majestically on Moscow's Red Square, Saint Basil's Cathedral is world-renowned for its colorful onion domes. Directly in front stands the 1818 bronze monument to Kuzma Minin and Dmitry Pozharsky.",
+    "search_query": "Saint Basil Cathedral Moscow Russia"
+  },
+  "burj khalifa": {
+    "prominent_attraction": "Burj Khalifa",
+    "specific_subject": "Burj Khalifa",
+    "city": "Dubai",
+    "country": "United Arab Emirates",
+    "latitude": 25.1972,
+    "longitude": 55.2744,
+    "summary": "Soaring 828 meters above Downtown Dubai, Burj Khalifa is the world's tallest building and skyscraper, renowned for its neo-futuristic architecture and observation decks.",
+    "search_query": "Burj Khalifa Dubai"
+  },
+  "grand canyon": {
+    "prominent_attraction": "Grand Canyon",
+    "specific_subject": "Grand Canyon",
+    "city": "Arizona",
+    "country": "United States",
+    "latitude": 36.098,
+    "longitude": -112.0963,
+    "summary": "A monumental geological marvel carved by the Colorado River in Arizona, revealing billions of years of Earth's geological strata across 277 miles of dramatic crimson cliffs.",
+    "search_query": "Grand Canyon Arizona"
+  },
+  "images (1).jpeg": {
+    "prominent_attraction": "Grand Canyon",
+    "specific_subject": "Grand Canyon",
+    "city": "Arizona",
+    "country": "United States",
+    "latitude": 36.098,
+    "longitude": -112.0963,
+    "summary": "A monumental geological marvel carved by the Colorado River in Arizona, revealing billions of years of Earth's geological strata across 277 miles of dramatic crimson cliffs.",
+    "search_query": "Grand Canyon Arizona"
+  },
+  "pngtree-burj-khalifa-tower-in-dubai-at-sunny-day-photo-picture-image_2335083.jpg": {
+    "prominent_attraction": "Burj Khalifa",
+    "specific_subject": "Burj Khalifa",
+    "city": "Dubai",
+    "country": "United Arab Emirates",
+    "latitude": 25.1972,
+    "longitude": 55.2744,
+    "summary": "Soaring 828 meters above Downtown Dubai, Burj Khalifa is the world's tallest building and skyscraper, renowned for its neo-futuristic architecture and observation decks.",
+    "search_query": "Burj Khalifa Dubai"
+  },
+  "images (2).jpeg": {
+    "prominent_attraction": "Kungsholmen",
+    "specific_subject": "Kungsholmen",
+    "city": "",
+    "country": "city",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Kungsholmen is a world-renowned landmark located in city.",
+    "search_query": "Kungsholmen"
+  },
+  "first_floor_of_the_eiffel_tower,_11_october_2010.jpg": {
+    "prominent_attraction": "Pont Rouelle",
+    "specific_subject": "Pont Rouelle",
+    "city": "",
+    "country": "bridge",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Pont Rouelle is a world-renowned landmark located in bridge.",
+    "search_query": "Pont Rouelle"
+  },
+  "space_needle_2011-07-04.jpg": {
+    "prominent_attraction": "Space Needle",
+    "specific_subject": "Space Needle",
+    "city": "",
+    "country": "tower",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Space Needle is a world-renowned landmark located in tower.",
+    "search_query": "Space Needle"
+  },
+  "unnamed.webp": {
+    "prominent_attraction": "India Gate",
+    "specific_subject": "India Gate",
+    "city": "",
+    "country": "",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "India Gate is a notable landmark.",
+    "search_query": "India Gate"
+  },
+  "images.jpeg": {
+    "prominent_attraction": "Taj Mahal",
+    "specific_subject": "Mehtab Bagh (Moonlight Garden)",
+    "city": "Agra",
+    "country": "India",
+    "latitude": 27.1751,
+    "longitude": 78.0421,
+    "summary": "Positioned directly north across the Yamuna River from the Taj Mahal, Mehtab Bagh provides the quintessential panoramic vantage point for the iconic white marble wonder.",
+    "search_query": "Taj Mahal Agra"
+  },
+  "images (5).jpeg": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Monument to Minin and Pozharsky",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Located on Moscow's Red Square directly in front of the world-famous Saint Basil's Cathedral, this bronze statue commemorates Dmitry Pozharsky and Kuzma Minin, leaders of the 1612 resistance.",
+    "search_query": "Saint Basil Cathedral Moscow"
+  },
+  "saint basil cathedral moscow": {
+    "prominent_attraction": "Helsinki Lutheran Cathedral",
+    "specific_subject": "Helsinki Lutheran Cathedral",
+    "city": "Центральный федеральный округ",
+    "country": "Россия",
+    "latitude": 55.7524736,
+    "longitude": 37.6231624,
+    "summary": "Helsinki Lutheran Cathedral is a world-renowned landmark located in Центральный федеральный округ, Россия.",
+    "search_query": "Helsinki Lutheran Cathedral Центральный федеральный округ"
+  },
+  "image.png": {
+    "prominent_attraction": "Financial District, Toronto",
+    "specific_subject": "Financial District, Toronto",
+    "city": "Pulau Pinang",
+    "country": "Malaysia",
+    "latitude": 5.4077722,
+    "longitude": 100.4136339,
+    "summary": "Financial District, Toronto is a world-renowned landmark located in Pulau Pinang, Malaysia.",
+    "search_query": "Financial District, Toronto Pulau Pinang"
+  }
+}

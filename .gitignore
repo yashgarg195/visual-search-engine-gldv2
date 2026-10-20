@@ -45,3 +45,7 @@ htmlcov/
 
 # Local env files
 .env
+
+# Runtime caches and visual outputs
+data/cache/
+outputs/visualizations/

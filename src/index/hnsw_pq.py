@@ -248,3 +248,10 @@ class HNSWPQIndex(BaseVectorIndex):
     @property
     def is_trained(self) -> bool:
         return self._index.is_trained if self._index is not None else False
+
+    def reconstruct(self, key: int) -> np.ndarray:
+        """Reconstruct an approximation of the vector from its int64 ID."""
+        if self._index is None:
+            raise RuntimeError("Index not loaded.")
+        return self._index.reconstruct(int(key))
+

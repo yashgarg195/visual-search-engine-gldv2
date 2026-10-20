@@ -17,11 +17,10 @@ from src.metadata.lookup import LandmarkLookupTable
 from src.models.clip_encoder import CLIPEncoder
 from src.utils.logging import get_logger
 
-try:
-    from src.reranking.pipeline import GeometricReranker
-    HAS_GEOMETRIC_RERANKER = True
-except ImportError:
-    HAS_GEOMETRIC_RERANKER = False
+from src.llm.location_resolver import LocationResolver
+from src.reranking.reference_fetcher import ReferenceImageFetcher
+from src.reranking.hybrid_fusion import HybridMultiSignalReranker
+
 
 logger = get_logger("search_service")
 
@@ -89,6 +88,12 @@ class SearchEngineService:
             if meta_p.is_file():
                 self.lookup.load_from_parquet(meta_p)
 
+        # 5. Initialize Location Resolver, Reference Fetcher, and Hybrid Fusion Reranker
+        logger.info("Initializing Location Resolver, Reference Fetcher, and Hybrid Fusion Reranker...")
+        self.location_resolver = LocationResolver()
+        self.reference_fetcher = ReferenceImageFetcher()
+        self.fusion_reranker = HybridMultiSignalReranker()
+
         self.is_ready = True
         logger.info(
             "Search Engine Service successfully initialized! Total IVF vectors: %d | Total HNSW vectors: %d",
@@ -97,21 +102,27 @@ class SearchEngineService:
         )
 
     def _ensure_hnsw_loaded(self) -> bool:
-        """Dynamically load HNSW-PQ index if available."""
-        if self.index_hnsw is not None:
-            return True
+        """Dynamically load or reload HNSW-PQ index if a newer file exists."""
         hnsw_path = self.cfg.index_dir / "hnswpq_populated.index"
-        if hnsw_path.is_file():
-            try:
-                logger.info("Loading FAISS HNSW-PQ index from %s...", hnsw_path)
-                self.index_hnsw = HNSWPQIndex()
-                self.index_hnsw.load(hnsw_path)
-                self.index_hnsw.set_ef_search(64)
-                logger.info("Loaded HNSW-PQ index with %d vectors", self.index_hnsw.total_vectors)
+        if not hnsw_path.is_file():
+            return False
+
+        try:
+            curr_mtime = hnsw_path.stat().st_mtime
+            if self.index_hnsw is not None and getattr(self, "_hnsw_mtime", 0.0) == curr_mtime:
                 return True
-            except Exception as e:
-                logger.warning("Failed to load HNSW-PQ index from %s: %s", hnsw_path, e)
-        return False
+
+            logger.info("Loading / Reloading FAISS HNSW-PQ index from %s...", hnsw_path)
+            new_hnsw = HNSWPQIndex()
+            new_hnsw.load(hnsw_path)
+            new_hnsw.set_ef_search(128)
+            self.index_hnsw = new_hnsw
+            self._hnsw_mtime = curr_mtime
+            logger.info("Successfully loaded HNSW-PQ index with %d vectors (M=64, efSearch=128)", self.index_hnsw.total_vectors)
+            return True
+        except Exception as e:
+            logger.warning("Failed to load HNSW-PQ index from %s: %s", hnsw_path, e)
+            return self.index_hnsw is not None
 
     def get_info(self) -> Dict[str, Any]:
         """Return system stats and index info."""
@@ -121,6 +132,8 @@ class SearchEngineService:
             available_indices.append("ivfpq")
         if self.index_hnsw is not None:
             available_indices.append("hnswpq")
+        if self.index_ivf is not None and self.index_hnsw is not None:
+            available_indices.append("ensemble")
 
         total_vecs = self.index_ivf.total_vectors if self.index_ivf else (self.index_hnsw.total_vectors if self.index_hnsw else 0)
 
@@ -149,32 +162,86 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = False,
+        alpha_qe: bool = False,
+        query_image_path: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """Core search and aggregation routine given a 512-dim normalized embedding."""
         if not self.is_ready:
             raise RuntimeError("Search service is not initialized.")
 
-        is_hnsw = "hnsw" in index_type.lower()
-        if is_hnsw:
+        is_ensemble = "ensemble" in index_type.lower() or "hybrid" in index_type.lower()
+        is_hnsw = "hnsw" in index_type.lower() and not is_ensemble
+
+        search_k = max(top_k + 5, 20)
+        fusion_meta: Dict[int, Dict[str, Any]] = {}
+
+        if is_ensemble:
+            self._ensure_hnsw_loaded()
+            if self.index_ivf is None or self.index_hnsw is None:
+                raise RuntimeError("Ensemble search requires both IVF-PQ and HNSW-PQ indices to be available.")
+            self.index_ivf.set_nprobe(nprobe or 64)
+            self.index_hnsw.set_ef_search(ef_search or 64)
+
+            t_search_start = time.perf_counter()
+            sc_ivf, ids_ivf = self.index_ivf.search(query_emb.reshape(1, -1), top_k=search_k)
+            sc_hnsw, ids_hnsw = self.index_hnsw.search(query_emb.reshape(1, -1), top_k=search_k)
+            from src.index.fusion import reciprocal_rank_fusion
+            scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
+                [("ivfpq", sc_ivf[0], ids_ivf[0]), ("hnswpq", sc_hnsw[0], ids_hnsw[0])],
+                k=60,
+                top_k=search_k,
+            )
+            t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
+            active_index = self.index_hnsw
+        elif is_hnsw:
             self._ensure_hnsw_loaded()
             if self.index_hnsw is None:
                 raise RuntimeError("HNSW-PQ index is not available. Please train it first or select IVF-PQ.")
             active_index = self.index_hnsw
             active_index.set_ef_search(ef_search or 64)
+
+            t_search_start = time.perf_counter()
+            scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+            t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
+            scores = scores[0]
+            faiss_ids = faiss_ids[0]
         else:
             if self.index_ivf is None:
                 raise RuntimeError("IVF-PQ index is not initialized.")
             active_index = self.index_ivf
             active_index.set_nprobe(nprobe or 64)
 
-        search_k = max(top_k + 5, 20)
+            t_search_start = time.perf_counter()
+            scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+            t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
+            scores = scores[0]
+            faiss_ids = faiss_ids[0]
 
-        t_search_start = time.perf_counter()
-        scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
-        t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
-
-        scores = scores[0]
-        faiss_ids = faiss_ids[0]
+        # Optional Alpha-Query Expansion (α-QE)
+        t_qe_ms = 0.0
+        if alpha_qe and HAS_ALPHA_QE:
+            t_qe_start = time.perf_counter()
+            expander = AlphaQueryExpander(alpha=3.0, num_candidates=5)
+            expanded_emb = expander.expand_query(
+                query_emb=query_emb,
+                candidate_ids=list(faiss_ids),
+                candidate_scores=list(scores),
+                index=active_index,
+            )
+            if is_ensemble:
+                sc_ivf_qe, ids_ivf_qe = self.index_ivf.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                sc_hnsw_qe, ids_hnsw_qe = self.index_hnsw.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                from src.index.fusion import reciprocal_rank_fusion
+                scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
+                    [("ivfpq", sc_ivf_qe[0], ids_ivf_qe[0]), ("hnswpq", sc_hnsw_qe[0], ids_hnsw_qe[0])],
+                    k=60,
+                    top_k=search_k,
+                )
+            else:
+                scores_qe, faiss_ids_qe = active_index.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                scores = scores_qe[0]
+                faiss_ids = faiss_ids_qe[0]
+            t_qe_ms = (time.perf_counter() - t_qe_start) * 1000.0
 
         # Optional Two-stage exact rerank
         if rerank and self.df_mapping is not None:
@@ -223,20 +290,61 @@ class SearchEngineService:
                 "category_url": category_url,
                 "hierarchical_label": hierarchical_label,
                 "image_path": img_full_path,
+                "latitude": image_info.get("latitude"),
+                "longitude": image_info.get("longitude"),
             }
+            if int(fid) in fusion_meta:
+                f_info = fusion_meta[int(fid)]
+                match_data["consensus"] = f_info.get("consensus", False)
+                match_data["sources"] = f_info.get("sources", [])
+                match_data["rrf_score"] = f_info.get("rrf_score", 0.0)
+
             retrieved_matches.append(match_data)
             rank += 1
             if len(retrieved_matches) >= top_k:
                 break
 
-        # Voting aggregation
-        voting_result = compute_similarity_weighted_votes(retrieved_matches)
+
+        # 6. Location Resolution & Canonical Reference Images
+        location_info = None
+        reference_images: List[Dict[str, Any]] = []
+        if retrieved_matches:
+            try:
+                loc_res = self.location_resolver.resolve(query_desc, retrieved_matches)
+                if loc_res:
+                    location_info = loc_res.to_dict()
+                    raw_refs = self.reference_fetcher.fetch_reference_images(loc_res.search_query, max_images=4)
+                    reference_images = raw_refs
+            except Exception as e:
+                logger.warning("Location resolution / reference pipeline failed: %s", e)
+
+        # 7. Hybrid Multi-Signal Fusion Reranking (50% Visual + 30% Vicinity Consensus + 20% Spatial Proximity)
+        t_fusion_start = time.perf_counter()
+        prominent_anchor = location_info.get("prominent_attraction") if location_info else None
+        anchor_coords = None
+        if location_info and location_info.get("latitude") and location_info.get("longitude"):
+            try:
+                anchor_coords = (float(location_info["latitude"]), float(location_info["longitude"]))
+            except (ValueError, TypeError):
+                anchor_coords = None
+
+        final_matches = self.fusion_reranker.rerank(
+            retrieved_matches=retrieved_matches,
+            prominent_anchor=prominent_anchor,
+            anchor_coords=anchor_coords,
+        )
+        t_fusion_ms = (time.perf_counter() - t_fusion_start) * 1000.0
+
+        # Voting aggregation based on fused candidates
+        voting_result = compute_similarity_weighted_votes(final_matches)
         voting_summary: Optional[Dict[str, Any]] = None
 
         if voting_result.leading_candidate:
             lead = voting_result.leading_candidate
+            display_name = prominent_anchor if (prominent_anchor and location_info) else lead.landmark_name
             voting_summary = {
-                "landmark_name": lead.landmark_name,
+                "landmark_name": display_name,
+                "specific_landmark": lead.landmark_name,
                 "landmark_id": lead.landmark_id,
                 "split": lead.split,
                 "total_vote_score": round(lead.total_vote_score, 4),
@@ -249,12 +357,15 @@ class SearchEngineService:
         return {
             "query_desc": query_desc,
             "search_latency_ms": round(t_search_ms, 2),
+            "fusion_latency_ms": round(t_fusion_ms, 2),
             "top_k": top_k,
             "nprobe": nprobe,
             "ef_search": ef_search,
-            "index_type": "hnswpq" if is_hnsw else "ivfpq",
+            "index_type": "ensemble" if is_ensemble else ("hnswpq" if is_hnsw else "ivfpq"),
             "voting_summary": voting_summary,
-            "matches": retrieved_matches,
+            "location_info": location_info,
+            "reference_images": reference_images,
+            "matches": final_matches[:top_k],
         }
 
     def search_text(
@@ -265,6 +376,7 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = False,
+        alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode natural language text query and retrieve matching landmarks."""
         if not self.encoder:
@@ -282,11 +394,13 @@ class SearchEngineService:
             index_type=index_type,
             ef_search=ef_search,
             rerank=rerank,
+            alpha_qe=alpha_qe,
         )
         res["query_type"] = "text"
         res["query_input"] = query_text
         res["embedding_latency_ms"] = round(t_emb_ms, 2)
-        res["total_latency_ms"] = round(t_emb_ms + res["search_latency_ms"], 2)
+        total_lat = t_emb_ms + res["search_latency_ms"] + res.get("alpha_qe_ms", 0.0)
+        res["total_latency_ms"] = round(total_lat, 2)
         return res
 
     def search_image(
@@ -298,7 +412,7 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = False,
-        rerank_geometric: bool = False,
+        alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode raw image bytes into OpenCLIP representation and retrieve matching landmarks."""
         if not self.encoder:
@@ -318,37 +432,13 @@ class SearchEngineService:
             index_type=index_type,
             ef_search=ef_search,
             rerank=rerank,
+            alpha_qe=alpha_qe,
         )
-
-        # Optional Stage-2 Geometric Verification
-        t_geom_ms = 0.0
-        if rerank_geometric and HAS_GEOMETRIC_RERANKER:
-            t_geom_start = time.perf_counter()
-            reranker = GeometricReranker()
-            res["matches"] = reranker.rerank(
-                query_image=rgb_img,
-                candidates=res["matches"],
-                top_k=top_k,
-            )
-            # Recompute voting summary with reranked matches
-            voting_res = compute_similarity_weighted_votes(res["matches"])
-            if voting_res.leading_candidate:
-                lead = voting_res.leading_candidate
-                res["voting_summary"] = {
-                    "landmark_name": lead.landmark_name,
-                    "landmark_id": lead.landmark_id,
-                    "split": lead.split,
-                    "total_vote_score": round(lead.total_vote_score, 4),
-                    "confidence_margin": round(voting_res.margin, 4),
-                    "match_count": lead.match_count,
-                    "category_url": lead.category_url or "",
-                    "hierarchical_label": lead.hierarchical_label or "",
-                }
-            t_geom_ms = (time.perf_counter() - t_geom_start) * 1000.0
-            res["geometric_rerank_ms"] = round(t_geom_ms, 2)
 
         res["query_type"] = "image"
         res["query_input"] = filename
         res["embedding_latency_ms"] = round(t_emb_ms, 2)
-        res["total_latency_ms"] = round(t_emb_ms + res["search_latency_ms"] + t_geom_ms, 2)
+        total_lat = t_emb_ms + res["search_latency_ms"] + res.get("fusion_latency_ms", 0.0)
+        res["total_latency_ms"] = round(total_lat, 2)
         return res
+

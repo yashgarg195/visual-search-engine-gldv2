@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -95,7 +98,9 @@
           <select id="indexTypeSelect" class="form-select">
             <option value="ivfpq" selected>IVF-PQ (Inverted File)</option>
             <option value="hnswpq">HNSW-PQ (Graph + PQ)</option>
+            <option value="ensemble">Ensemble (Hybrid: IVF + HNSW)</option>
           </select>
+
         </div>
 
         <div class="control-group">
@@ -117,12 +122,6 @@
           </select>
         </div>
 
-        <div class="control-group" id="geomControlGroup" style="display:flex; align-items:center;">
-          <label for="geomCheckbox" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:var(--text-primary, #333);">
-            <input type="checkbox" id="geomCheckbox" style="cursor:pointer; width:16px; height:16px;">
-            <span>Stage-2 Verification (SIFT)</span>
-          </label>
-        </div>
 
         <div class="action-wrap">
           <button type="button" id="searchSubmitBtn" class="btn btn-primary">
@@ -156,9 +155,65 @@
             <span class="metric-label">FAISS Search:</span>
             <strong id="metricSearchTime">0 ms</strong>
           </div>
+          <div class="metric-pill" id="metricFusionWrap" style="display:none">
+            <span class="metric-label">Hybrid Fusion:</span>
+            <strong id="metricFusionTime">0 ms</strong>
+          </div>
           <div class="metric-pill metric-highlight">
             <span class="metric-label">Total:</span>
             <strong id="metricTotalTime">0 ms</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Location Intelligence Card (Gemini 3.8 Flash + Geocoding) -->
+      <div class="location-intel-card" id="locationIntelCard" style="display:none">
+        <div class="intel-header">
+          <div class="intel-badge">✨ AI Location Intelligence</div>
+          <span class="intel-geotag" id="locGeoTag">📍 Moscow, Russia</span>
+        </div>
+        
+        <div class="intel-body-grid">
+          <!-- Left: Prominent Landmark Details & Reference Gallery Card -->
+          <div class="intel-main">
+            <h2 id="locProminentName" class="intel-title">Saint Basil's Cathedral</h2>
+            <div id="locSpecificWrap" class="intel-specific-wrap" style="display:none">
+              <span class="intel-specific-label">Detected Subject:</span>
+              <span id="locSpecificName" class="intel-specific-badge">Monument to Minin and Pozharsky</span>
+            </div>
+            <p id="locSummary" class="intel-summary">
+              Located on Moscow's Red Square, Saint Basil's Cathedral is world-renowned for its colorful onion domes.
+            </p>
+            
+            <!-- Canonical Reference Photos Card (Horizontally Scrollable) -->
+            <div class="ref-gallery-section" id="refGallerySection">
+              <div class="ref-gallery-header">
+                <h4>Canonical Reference Photos</h4>
+                <span class="ref-gallery-sub">&larr; Scroll horizontally &rarr;</span>
+              </div>
+              <div class="ref-gallery-scroll-wrap" id="refGalleryGrid">
+                <!-- Horizontally injected via app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Google Maps with Pin Embedded on Page -->
+          <div class="intel-map-wrap">
+            <div class="map-header">
+              <span class="map-label">📍 Geographic Location (Google Maps)</span>
+            </div>
+            <div id="mapContainer" class="map-container">
+              <iframe
+                id="gmapsIframe"
+                class="gmaps-iframe"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+                src=""
+                title="Google Maps Location Pin"
+              ></iframe>
+            </div>
+            <div class="coords-display" id="coordsDisplay">55.7525° N, 37.6231° E</div>
           </div>
         </div>
       </div>
@@ -198,6 +253,6 @@
     </section>
   </div>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=2.5"></script>
 </body>
 </html>

@@ -54,3 +54,8 @@ class BaseVectorIndex(ABC):
     def is_trained(self) -> bool:
         """Return True if index is trained and ready for vector additions."""
         pass
+
+    def reconstruct(self, key: int) -> np.ndarray:
+        """Reconstruct an approximation of the vector from its int64 ID."""
+        raise NotImplementedError("Vector reconstruction not implemented for this index type.")
+

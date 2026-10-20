@@ -252,3 +252,17 @@ class IVFPQIndex(BaseVectorIndex):
 
         self.set_nprobe(self.nprobe)
         logger.info("Loaded IVF-PQ index with %d vectors (nprobe=%d).", self.total_vectors, self.nprobe)
+
+    def reconstruct(self, key: int) -> np.ndarray:
+        """Reconstruct an approximation of the vector from its int64 ID."""
+        if self._index is None:
+            raise RuntimeError("Index not loaded.")
+        try:
+            return self._index.reconstruct(int(key))
+        except (RuntimeError, Exception):
+            if hasattr(self._index, "index"):
+                down = faiss.downcast_index(self._index.index)
+                if hasattr(down, "make_direct_map"):
+                    down.make_direct_map()
+            return self._index.reconstruct(int(key))
+

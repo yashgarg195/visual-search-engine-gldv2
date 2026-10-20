@@ -1,8 +1,9 @@
 """Pluggable Stage-2 Geometric Reranking Pipeline.
 
-Reranks coarse candidate matches from FAISS IVF-PQ using local keypoint
-geometric verification. Fully decoupled and non-destructive: if disabled or
-in case of failure, candidates preserve their original coarse retrieval order.
+Reranks coarse candidate matches from FAISS IVF-PQ or HNSW-PQ using local keypoint
+geometric verification (SIFT or SuperPoint + LightGlue).
+Fully decoupled and non-destructive: if disabled or in case of missing images,
+candidates preserve their original coarse retrieval order.
 """
 
 from collections import OrderedDict
@@ -12,9 +13,16 @@ import numpy as np
 from PIL import Image
 
 from src.reranking.geometric_verifier import GeometricVerifier, GeometricVerificationResult
+from src.reranking.thumbnail_fetcher import get_thumbnail_fetcher
 from src.utils.logging import get_logger
 
 logger = get_logger("geometric_reranker")
+
+try:
+    from src.reranking.lightglue_verifier import LightGlueVerifier
+    HAS_LIGHTGLUE_VERIFIER = True
+except ImportError:
+    HAS_LIGHTGLUE_VERIFIER = False
 
 
 class GeometricReranker:
@@ -22,48 +30,92 @@ class GeometricReranker:
 
     def __init__(
         self,
-        verifier: Optional[GeometricVerifier] = None,
+        verifier: Optional[Any] = None,
+        matcher_type: str = "sift",
         verification_boost: float = 1.0,
         alpha: Optional[float] = None,
         max_cache_size: int = 500,
+        fetch_thumbnails: bool = True,
     ):
         """Args:
-            verifier: Instance of GeometricVerifier (defaults to SIFT).
+            verifier: Instance of GeometricVerifier or LightGlueVerifier.
+            matcher_type: Matcher algorithm ('sift', 'orb', or 'lightglue').
             verification_boost: Multiplier for geometric verification boost.
             alpha: Legacy/optional blend weight (if passed, adjusts boost).
             max_cache_size: Number of candidate image descriptors to hold in LRU memory cache.
+            fetch_thumbnails: Whether to attempt on-demand thumbnail fetching if local image is missing.
         """
-        self.verifier = verifier or GeometricVerifier()
+        self.matcher_type = matcher_type.lower()
+        self.fetch_thumbnails = fetch_thumbnails
+
+        if verifier is not None:
+            self.verifier = verifier
+        elif self.matcher_type in ("lightglue", "superpoint", "neural"):
+            if HAS_LIGHTGLUE_VERIFIER:
+                try:
+                    self.verifier = LightGlueVerifier()
+                except Exception as e:
+                    logger.warning("Failed initializing LightGlueVerifier: %s. Falling back to SIFT.", e)
+                    self.verifier = GeometricVerifier(detector_type="sift")
+            else:
+                logger.warning("LightGlueVerifier module not found. Falling back to SIFT.")
+                self.verifier = GeometricVerifier(detector_type="sift")
+        else:
+            self.verifier = GeometricVerifier(detector_type=self.matcher_type)
+
         if alpha is not None:
-            # Map legacy alpha to verification_boost if specified
             self.verification_boost = float((1.0 - alpha) / max(alpha, 0.01))
         else:
             self.verification_boost = float(max(0.0, verification_boost))
+
         self.max_cache_size = max_cache_size
-        self._cache: OrderedDict[str, Tuple[np.ndarray, np.ndarray, Tuple[int, int]]] = OrderedDict()
+        self._cache: OrderedDict[str, Tuple[np.ndarray, Any, Tuple[int, int]]] = OrderedDict()
 
     def _get_candidate_features(
-        self, img_path: Union[str, Path]
-    ) -> Optional[Tuple[np.ndarray, np.ndarray, Tuple[int, int]]]:
+        self, candidate: Dict[str, Any]
+    ) -> Optional[Tuple[np.ndarray, Any, Tuple[int, int]]]:
         """Fetch or extract candidate keypoints with an LRU cache."""
-        path_str = str(img_path)
-        if path_str in self._cache:
-            self._cache.move_to_end(path_str)
-            return self._cache[path_str]
+        img_path = candidate.get("image_path")
+        cache_key = str(img_path) if img_path else ""
 
-        p = Path(path_str)
-        if not p.is_file():
-            return None
+        if cache_key and cache_key in self._cache:
+            self._cache.move_to_end(cache_key)
+            return self._cache[cache_key]
 
-        try:
-            feats = self.verifier.extract_features(p)
-            if len(self._cache) >= self.max_cache_size:
-                self._cache.popitem(last=False)
-            self._cache[path_str] = feats
-            return feats
-        except Exception as e:
-            logger.debug("Failed extracting features for candidate %s: %s", path_str, e)
-            return None
+        # 1. Try local file path first
+        if img_path:
+            p = Path(img_path)
+            if p.is_file():
+                try:
+                    feats = self.verifier.extract_features(p)
+                    if len(self._cache) >= self.max_cache_size:
+                        self._cache.popitem(last=False)
+                    self._cache[cache_key] = feats
+                    return feats
+                except Exception as e:
+                    logger.debug("Failed extracting features for %s: %s", img_path, e)
+
+        # 2. On-demand thumbnail fetch if enabled and image URL exists
+        cand_url = candidate.get("image_url") or candidate.get("thumbnail_url")
+        if self.fetch_thumbnails and cand_url and isinstance(cand_url, str) and cand_url.startswith("http"):
+            url_key = f"url:{cand_url}"
+            if url_key in self._cache:
+                self._cache.move_to_end(url_key)
+                return self._cache[url_key]
+
+            fetcher = get_thumbnail_fetcher()
+            fetched_img = fetcher.fetch(cand_url)
+            if fetched_img is not None:
+                try:
+                    feats = self.verifier.extract_features(fetched_img)
+                    if len(self._cache) >= self.max_cache_size:
+                        self._cache.popitem(last=False)
+                    self._cache[url_key] = feats
+                    return feats
+                except Exception as e:
+                    logger.debug("Failed extracting features from fetched image %s: %s", cand_url, e)
+
+        return None
 
     def rerank(
         self,
@@ -98,10 +150,9 @@ class GeometricReranker:
 
         for candidate in pool_to_rerank:
             cand_copy = dict(candidate)
-            img_path = cand_copy.get("image_path")
             coarse_score = float(cand_copy.get("score", 0.0))
 
-            cand_feats = self._get_candidate_features(img_path) if img_path else None
+            cand_feats = self._get_candidate_features(cand_copy)
 
             if cand_feats is None:
                 # Fall back to original coarse score
@@ -125,10 +176,8 @@ class GeometricReranker:
                 cand_copy["geometric_score"] = res.geometric_score
 
                 if res.is_verified:
-                    # Positive geometric verification boosts coarse score proportionally
                     final = coarse_score * (1.0 + self.verification_boost * res.geometric_score)
                 else:
-                    # Penalize unverified candidates slightly
                     final = coarse_score * 0.95
 
                 cand_copy["final_score"] = round(float(final), 4)

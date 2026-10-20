@@ -43,20 +43,29 @@ def main():
     parser.add_argument(
         "--index-type",
         type=str,
-        choices=["ivfpq", "hnswpq"],
+        choices=["ivfpq", "hnswpq", "ensemble"],
         default="ivfpq",
-        help="Vector index architecture to query ('ivfpq' or 'hnswpq')",
+        help="Vector index architecture to query ('ivfpq', 'hnswpq', or 'ensemble')",
     )
     parser.add_argument("--nprobe", type=int, default=64, help="Number of IVF Voronoi cells to probe at query time")
     parser.add_argument("--ef-search", type=int, default=64, help="Exploration depth for HNSW graph search")
     parser.add_argument("--rerank", action="store_true", help="Perform two-stage exact reranking on candidates")
     parser.add_argument("--rerank-candidates", type=int, default=50, help="Candidate pool size for two-stage rerank")
+    parser.add_argument("--alpha-qe", action="store_true", help="Perform fast α-Query Expansion vector reranking")
     parser.add_argument("--geometric-rerank", action="store_true", help="Perform Stage-2 local feature geometric verification")
+    parser.add_argument(
+        "--matcher",
+        type=str,
+        choices=["sift", "lightglue"],
+        default="sift",
+        help="Feature matching algorithm for Stage-2 ('sift' or 'lightglue')",
+    )
     parser.add_argument("--device", type=str, default=None, help="Device to use ('auto', 'cuda', 'mps', 'cpu')")
     parser.add_argument("--pretrained", type=str, default=None, help="Pretrained weights tag (e.g. openai, none)")
     parser.add_argument("--exclude-image-id", type=str, default=None, help="Exclude specific image ID from results")
     parser.add_argument("--output-csv", type=str, default=None, help="Save search results to CSV file")
     parser.add_argument("--output-json", type=str, default=None, help="Save search results to JSON file")
+
     args = parser.parse_args()
 
     cfg = get_config(args.env_file)
@@ -66,31 +75,40 @@ def main():
         return 1
 
     # 1. Load FAISS index based on index-type
-    if args.index_type == "hnswpq":
-        index_path = cfg.index_dir / "hnswpq_populated.index"
-        if not index_path.is_file():
-            logger.error("HNSW-PQ index not found at %s. Please train index first (scripts/train_hnsw_pq.py).", index_path)
+    index_ivf = None
+    index_hnsw = None
+    index = None
+
+    if args.index_type in ("hnswpq", "ensemble"):
+        hnsw_path = cfg.index_dir / "hnswpq_populated.index"
+        if not hnsw_path.is_file():
+            logger.error("HNSW-PQ index not found at %s. Please train index first.", hnsw_path)
             return 1
-        index = HNSWPQIndex()
-        index.load(index_path)
-        index.set_ef_search(args.ef_search)
-        logger.info("Loaded HNSW-PQ index (%d vectors, efSearch=%d) from %s", index.total_vectors, args.ef_search, index_path)
-    else:
-        index_path = cfg.index_dir / "ivfpq_populated.index"
-        if not index_path.is_file():
-            index_path = cfg.index_dir / "ivfpq_trained.index"
-            if not index_path.is_file():
-                logger.error("FAISS IVF-PQ index not found at %s. Please train and populate index first.", index_path)
+        index_hnsw = HNSWPQIndex()
+        index_hnsw.load(hnsw_path)
+        index_hnsw.set_ef_search(args.ef_search)
+        logger.info("Loaded HNSW-PQ index (%d vectors, efSearch=%d)", index_hnsw.total_vectors, args.ef_search)
+        index = index_hnsw
+
+    if args.index_type in ("ivfpq", "ensemble"):
+        ivf_path = cfg.index_dir / "ivfpq_populated.index"
+        if not ivf_path.is_file():
+            ivf_path = cfg.index_dir / "ivfpq_trained.index"
+            if not ivf_path.is_file():
+                logger.error("FAISS IVF-PQ index not found at %s.", ivf_path)
                 return 1
+        index_ivf = IVFPQIndex()
+        index_ivf.load(ivf_path)
+        index_ivf.set_nprobe(args.nprobe)
+        logger.info("Loaded IVF-PQ index (%d vectors, nprobe=%d)", index_ivf.total_vectors, args.nprobe)
+        if index is None:
+            index = index_ivf
 
-        index = IVFPQIndex()
-        index.load(index_path)
-        index.set_nprobe(args.nprobe)
-        logger.info("Loaded IVF-PQ index (%d vectors, nprobe=%d) from %s", index.total_vectors, args.nprobe, index_path)
-
-    if index.total_vectors == 0:
-        logger.error("Index at %s is empty (0 vectors indexed).", index_path)
+    total_vecs = index.total_vectors if index else 0
+    if total_vecs == 0:
+        logger.error("Loaded index is empty (0 vectors indexed).")
         return 1
+
 
     # 2. Load ID mapping
     id_mapping_path = cfg.index_dir / "id_mapping.parquet"
@@ -138,16 +156,62 @@ def main():
 
     # 6. Search FAISS index
     search_k = args.rerank_candidates if args.rerank else (args.top_k + 5)
-    if args.index_type == "hnswpq":
+    search_start = time.time()
+    fusion_meta = {}
+
+    if args.index_type == "ensemble":
+        logger.info("Querying Ensemble (IVF-PQ + HNSW-PQ) with Reciprocal Rank Fusion...")
+        sc_ivf, ids_ivf = index_ivf.search(query_emb.reshape(1, -1), top_k=search_k)
+        sc_hnsw, ids_hnsw = index_hnsw.search(query_emb.reshape(1, -1), top_k=search_k)
+        from src.index.fusion import reciprocal_rank_fusion
+        scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
+            [("ivfpq", sc_ivf[0], ids_ivf[0]), ("hnswpq", sc_hnsw[0], ids_hnsw[0])],
+            k=60,
+            top_k=search_k,
+        )
+    elif args.index_type == "hnswpq":
         logger.info("Querying FAISS HNSW-PQ index (top_k=%d, efSearch=%d)...", search_k, args.ef_search)
+        scores, faiss_ids = index.search(query_emb.reshape(1, -1), top_k=search_k)
+        scores = scores[0]
+        faiss_ids = faiss_ids[0]
     else:
         logger.info("Querying FAISS IVF-PQ index (top_k=%d, nprobe=%d)...", search_k, args.nprobe)
-    search_start = time.time()
-    scores, faiss_ids = index.search(query_emb.reshape(1, -1), top_k=search_k)
+        scores, faiss_ids = index.search(query_emb.reshape(1, -1), top_k=search_k)
+        scores = scores[0]
+        faiss_ids = faiss_ids[0]
+
     search_time = time.time() - search_start
 
-    scores = scores[0]
-    faiss_ids = faiss_ids[0]
+    # Optional Alpha-Query Expansion (α-QE)
+    qe_time = 0.0
+    if args.alpha_qe:
+        try:
+            from src.reranking.alpha_qe import AlphaQueryExpander
+            t_qe_start = time.time()
+            expander = AlphaQueryExpander(alpha=3.0, num_candidates=5)
+            expanded_emb = expander.expand_query(
+                query_emb=query_emb,
+                candidate_ids=list(faiss_ids),
+                candidate_scores=list(scores),
+                index=index,
+            )
+            if args.index_type == "ensemble":
+                sc_ivf_qe, ids_ivf_qe = index_ivf.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                sc_hnsw_qe, ids_hnsw_qe = index_hnsw.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
+                    [("ivfpq", sc_ivf_qe[0], ids_ivf_qe[0]), ("hnswpq", sc_hnsw_qe[0], ids_hnsw_qe[0])],
+                    k=60,
+                    top_k=search_k,
+                )
+            else:
+                scores_qe, ids_qe = index.search(expanded_emb.reshape(1, -1), top_k=search_k)
+                scores = scores_qe[0]
+                faiss_ids = ids_qe[0]
+            qe_time = time.time() - t_qe_start
+            logger.info("Alpha-Query Expansion completed in %.2f ms", qe_time * 1000.0)
+        except Exception as e:
+            logger.warning("Alpha-Query Expansion failed: %s. Using coarse retrieval.", e)
+
 
     # 7. Optional two-stage rerank
     if args.rerank:
@@ -208,9 +272,9 @@ def main():
         else:
             try:
                 from src.reranking.pipeline import GeometricReranker
-                logger.info("Executing Stage-2 Geometric Verification reranker...")
+                logger.info("Executing Stage-2 Geometric Verification reranker (matcher=%s)...", args.matcher)
                 t_g_start = time.time()
-                reranker = GeometricReranker()
+                reranker = GeometricReranker(matcher_type=args.matcher)
                 with Image.open(Path(args.query_image)) as q_img:
                     retrieved_matches = reranker.rerank(
                         query_image=q_img.convert("RGB"),
@@ -218,11 +282,12 @@ def main():
                         top_k=args.top_k,
                     )
                 geom_time = time.time() - t_g_start
-                logger.info("Geometric verification finished in %.2f ms", geom_time * 1000.0)
+                logger.info("Geometric verification (%s) finished in %.2f ms", args.matcher, geom_time * 1000.0)
             except ImportError:
                 logger.warning("src.reranking module not found. Skipping geometric verification.")
             except Exception as e:
                 logger.warning("Geometric verification encountered an error: %s. Using coarse ranks.", e)
+
 
     # 9. Perform similarity-weighted voting
     voting_result = compute_similarity_weighted_votes(retrieved_matches)

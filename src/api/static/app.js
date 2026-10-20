@@ -58,6 +58,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const pillVectors = document.getElementById("pillVectors");
   const pillDevice = document.getElementById("pillDevice");
 
+  // AI Location Intelligence & Verification Elements
+  const locationIntelCard = document.getElementById("locationIntelCard");
+  const locGeoTag = document.getElementById("locGeoTag");
+  const locProminentName = document.getElementById("locProminentName");
+  const locSpecificWrap = document.getElementById("locSpecificWrap");
+  const locSpecificName = document.getElementById("locSpecificName");
+  const locSummary = document.getElementById("locSummary");
+  const refGalleryGrid = document.getElementById("refGalleryGrid");
+  const gmapsLink = document.getElementById("gmapsLink");
+  const coordsDisplay = document.getElementById("coordsDisplay");
+
+
   // State
   let activeTab = "image"; // 'image' | 'text'
   let selectedFile = null;
@@ -93,6 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentVal === "hnswpq") opt.selected = true;
             indexTypeSelect.appendChild(opt);
           }
+          if (data.available_indices.includes("ensemble")) {
+            const opt = document.createElement("option");
+            opt.value = "ensemble";
+            opt.textContent = `Ensemble (Hybrid: IVF + HNSW)`;
+            if (currentVal === "ensemble") opt.selected = true;
+            indexTypeSelect.appendChild(opt);
+          }
         }
       }
     } catch (e) {
@@ -104,23 +123,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // Algorithm selection change handler
   if (indexTypeSelect) {
     indexTypeSelect.addEventListener("change", () => {
-      const isHnsw = indexTypeSelect.value === "hnswpq";
+      const val = indexTypeSelect.value;
+      const isHnsw = val === "hnswpq";
+      const isEnsemble = val === "ensemble";
       if (tuningParamLabel) {
-        tuningParamLabel.textContent = isHnsw ? "Search Depth (efSearch):" : "Voronoi Probes (nprobe):";
+        if (isEnsemble) {
+          tuningParamLabel.textContent = "Probes / Depth:";
+        } else if (isHnsw) {
+          tuningParamLabel.textContent = "Search Depth (efSearch):";
+        } else {
+          tuningParamLabel.textContent = "Voronoi Probes (nprobe):";
+        }
       }
       if (tuningParamSelect) {
-        tuningParamSelect.innerHTML = isHnsw
-          ? `<option value="32">32 (Fastest)</option>
-             <option value="64" selected>64 (Balanced)</option>
-             <option value="128">128 (High Recall)</option>
-             <option value="256">256 (Exhaustive)</option>`
-          : `<option value="16">16 (Fastest)</option>
-             <option value="32">32 (Balanced)</option>
-             <option value="64" selected>64 (High Recall)</option>
-             <option value="128">128 (Max Precision)</option>`;
+        if (isEnsemble) {
+          tuningParamSelect.innerHTML = `
+            <option value="32">32 (Fast Hybrid)</option>
+            <option value="64" selected>64 (Balanced Hybrid)</option>
+            <option value="128">128 (Max Recall Hybrid)</option>`;
+        } else if (isHnsw) {
+          tuningParamSelect.innerHTML = `
+            <option value="32">32 (Fastest)</option>
+            <option value="64" selected>64 (Balanced)</option>
+            <option value="128">128 (High Recall)</option>
+            <option value="256">256 (Exhaustive)</option>`;
+        } else {
+          tuningParamSelect.innerHTML = `
+            <option value="16">16 (Fastest)</option>
+            <option value="32">32 (Balanced)</option>
+            <option value="64" selected>64 (High Recall)</option>
+            <option value="128">128 (Max Precision)</option>`;
+        }
       }
     });
   }
+
 
   // 2. Tab Navigation
   function switchTab(mode) {
@@ -166,6 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
       dropzoneEmpty.style.display = "none";
       dropzonePreview.style.display = "flex";
       hideError();
+      // Auto-trigger visual landmark search
+      triggerSearch();
     };
     reader.readAsDataURL(file);
   }
@@ -267,6 +306,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  const metricFusionWrap = document.getElementById("metricFusionWrap");
+  const metricFusionTime = document.getElementById("metricFusionTime");
+
   async function triggerSearch() {
     const topK = parseInt(topKSelect.value, 10);
     const indexType = indexTypeSelect ? indexTypeSelect.value : "ivfpq";
@@ -303,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
           index_type: indexType,
           ef_search: efSearch,
           rerank: false,
+          alpha_qe: false,
         }),
       });
 
@@ -329,9 +372,8 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("nprobe", nprobe);
       formData.append("index_type", indexType);
       formData.append("ef_search", efSearch);
-      const isGeom = document.getElementById("geomCheckbox") ? document.getElementById("geomCheckbox").checked : false;
       formData.append("rerank", "false");
-      formData.append("rerank_geometric", isGeom ? "true" : "false");
+      formData.append("alpha_qe", "false");
 
       const response = await fetch("/api/search/image", {
         method: "POST",
@@ -358,13 +400,89 @@ document.addEventListener("DOMContentLoaded", () => {
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
     // Metrics
-    const algoBadge = data.index_type === "hnswpq"
-      ? ` [HNSW-PQ, efSearch=${data.ef_search || 64}]`
-      : ` [IVF-PQ, nprobe=${data.nprobe || 64}]`;
+    let algoBadge = "";
+    if (data.index_type === "ensemble") {
+      algoBadge = ` [Ensemble: IVF + HNSW, RRF]`;
+    } else if (data.index_type === "hnswpq") {
+      algoBadge = ` [HNSW-PQ, efSearch=${data.ef_search || 64}]`;
+    } else {
+      algoBadge = ` [IVF-PQ, nprobe=${data.nprobe || 64}]`;
+    }
     queryDesc.textContent = (data.query_desc || "Query") + algoBadge;
     metricEmbTime.textContent = `${data.embedding_latency_ms || 0} ms`;
     metricSearchTime.textContent = `${data.search_latency_ms || 0} ms`;
+
+    if (metricFusionWrap && metricFusionTime) {
+      if (data.fusion_latency_ms !== undefined && data.fusion_latency_ms >= 0) {
+        metricFusionWrap.style.display = "inline-flex";
+        metricFusionTime.textContent = `${data.fusion_latency_ms} ms`;
+      } else {
+        metricFusionWrap.style.display = "none";
+      }
+    }
+
     metricTotalTime.textContent = `${data.total_latency_ms || 0} ms`;
+
+    // AI Location Intelligence (Gemini 3.8 Flash + Geocoding)
+    if (data.location_info && (data.location_info.prominent_attraction || data.location_info.city || data.location_info.country)) {
+      const loc = data.location_info;
+      locationIntelCard.style.display = "block";
+      locProminentName.textContent = loc.prominent_attraction || "Identified Landmark";
+
+      const geoParts = [loc.city, loc.country].filter(p => p && p !== "nan");
+      locGeoTag.textContent = geoParts.length > 0 ? `📍 ${geoParts.join(", ")}` : "📍 World Landmark";
+
+      if (loc.specific_subject && loc.specific_subject.toLowerCase() !== (loc.prominent_attraction || "").toLowerCase()) {
+        locSpecificWrap.style.display = "flex";
+        locSpecificName.textContent = loc.specific_subject;
+      } else {
+        locSpecificWrap.style.display = "none";
+      }
+
+      locSummary.textContent = loc.summary || "";
+
+      // Google Maps Pin embedded directly on page
+      const gmapsIframe = document.getElementById("gmapsIframe");
+      const lat = parseFloat(loc.latitude);
+      const lon = parseFloat(loc.longitude);
+      let mapQuery = "";
+
+      if (!isNaN(lat) && !isNaN(lon) && (lat !== 0 || lon !== 0)) {
+        coordsDisplay.textContent = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
+        mapQuery = `${lat},${lon}`;
+      } else if (loc.prominent_attraction) {
+        coordsDisplay.textContent = "Coordinates estimated";
+        mapQuery = encodeURIComponent(`${loc.prominent_attraction} ${loc.city || ""}`.trim());
+      }
+
+      if (gmapsIframe && mapQuery) {
+        gmapsIframe.src = `https://maps.google.com/maps?q=${mapQuery}&t=m&z=15&output=embed&iwloc=near`;
+      }
+
+      // Canonical Reference Gallery (Horizontally Scrollable Card)
+      refGalleryGrid.innerHTML = "";
+      const refs = data.reference_images || [];
+      if (refs.length === 0) {
+        refGalleryGrid.innerHTML = `<span style="font-size:0.8rem; color:#94a3b8; padding: 1rem 0;">No canonical photos found.</span>`;
+      } else {
+        refs.forEach((ref) => {
+          const refCard = document.createElement("div");
+          refCard.className = "ref-card";
+          refCard.innerHTML = `
+            <div class="ref-img-wrap">
+              <img src="${ref.thumb_url || ref.original_url}" alt="${escapeHtml(ref.title)}" loading="lazy" />
+              <span class="ref-badge canonical">Canonical Photo</span>
+            </div>
+            <div class="ref-info">
+              <span class="ref-title" title="${escapeHtml(ref.title)}">${escapeHtml(ref.title)}</span>
+            </div>
+          `;
+          refGalleryGrid.appendChild(refCard);
+        });
+      }
+    } else {
+      locationIntelCard.style.display = "none";
+    }
 
     // Top Candidate
     if (data.voting_summary && data.voting_summary.landmark_name) {
@@ -403,19 +521,21 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = "match-card";
 
-      // Normalize score for progress bar (cosine similarity ~0.20 to ~0.70 mapped to 20%-100%)
-      const pct = Math.min(100, Math.max(10, Math.round(m.score * 150)));
-
-      const isVerified = Boolean(m.geometric_verified);
       const scoreVal = m.final_score !== undefined ? m.final_score : m.score;
+      // Normalize score for progress bar (0.20 to 0.70 mapped to 20%-100%)
+      const pct = Math.min(100, Math.max(10, Math.round(scoreVal * 150)));
+
+      const isVicinityVerified = Boolean(m.is_vicinity_verified);
+      const isConsensus = Boolean(m.consensus);
 
       card.innerHTML = `
         <div class="match-top">
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
-            ${isVerified ? `<span style="background:#10b981; color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:0.5px;">✓ GEOM MATCH</span>` : ""}
+            ${isVicinityVerified ? `<span class="vicinity-badge">📍 Vicinity Verified</span>` : ""}
+            ${isConsensus ? `<span class="consensus-badge">⭐ CONSENSUS</span>` : ""}
           </div>
-          <span class="score-display">${isVerified ? "Score" : "Sim"}: ${scoreVal.toFixed(4)}</span>
+          <span class="score-display">Fused: ${scoreVal.toFixed(4)}</span>
         </div>
         <div class="score-bar-bg">
           <div class="score-bar-fill" style="width: ${pct}%"></div>
@@ -425,9 +545,13 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>Landmark ID: <strong>${m.landmark_id}</strong></span>
           <span>Image ID: <strong>${m.image_id}</strong></span>
           <span>Dataset Split: <strong>${m.split}</strong></span>
-          ${isVerified ? `<span>Inliers: <strong>${m.inliers}</strong> (${Math.round((m.inlier_ratio || 0) * 100)}% ratio)</span>` : ""}
+          ${m.vicinity_cluster ? `<span>Vicinity: <strong>${escapeHtml(m.vicinity_cluster)}</strong></span>` : ""}
+          ${m.distance_km !== null && m.distance_km !== undefined ? `<span>Distance: <strong>${m.distance_km} km away</strong></span>` : ""}
+          ${m.visual_sim !== undefined ? `<span>Breakdown: <strong>Vis ${Math.round(m.visual_sim * 100)}% | Vic ${Math.round(m.vicinity_score * 100)}% | Geo ${Math.round(m.spatial_score * 100)}%</strong></span>` : ""}
+          ${m.sources && m.sources.length > 0 ? `<span>Retrieved By: <strong>${m.sources.join(' + ').toUpperCase()}</strong></span>` : ""}
           ${m.hierarchical_label && m.hierarchical_label !== "nan" ? `<span>Category: <em>${escapeHtml(m.hierarchical_label)}</em></span>` : ""}
         </div>
+
         ${
           m.category_url
             ? `<div class="match-footer">
@@ -438,6 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       matchesGrid.appendChild(card);
     });
+
   }
 
   function escapeHtml(str) {

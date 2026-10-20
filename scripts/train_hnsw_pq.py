@@ -123,13 +123,11 @@ def main():
             continue
 
         arr = np.load(emb_path, mmap_mode="r")
-        df_meta = pd.read_parquet(meta_path)
 
         # Slice if near target
         remaining = target_vectors - added_count
         if len(arr) > remaining:
             arr = arr[:remaining]
-            df_meta = df_meta.iloc[:remaining]
 
         # Generate integer IDs offset from current added count
         shard_ids = np.arange(added_count, added_count + len(arr), dtype=np.int64)
