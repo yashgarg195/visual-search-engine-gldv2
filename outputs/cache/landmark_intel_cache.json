@@ -149,16 +149,6 @@
     "summary": "Soaring 828 meters above Downtown Dubai, Burj Khalifa is the world's tallest building and skyscraper, renowned for its neo-futuristic architecture and observation decks.",
     "search_query": "Burj Khalifa Dubai"
   },
-  "images (2).jpeg": {
-    "prominent_attraction": "Kungsholmen",
-    "specific_subject": "Kungsholmen",
-    "city": "",
-    "country": "city",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Kungsholmen is a world-renowned landmark located in city.",
-    "search_query": "Kungsholmen"
-  },
   "first_floor_of_the_eiffel_tower,_11_october_2010.jpg": {
     "prominent_attraction": "Pont Rouelle",
     "specific_subject": "Pont Rouelle",
@@ -168,26 +158,6 @@
     "longitude": 0.0,
     "summary": "Pont Rouelle is a world-renowned landmark located in bridge.",
     "search_query": "Pont Rouelle"
-  },
-  "space_needle_2011-07-04.jpg": {
-    "prominent_attraction": "Space Needle",
-    "specific_subject": "Space Needle",
-    "city": "",
-    "country": "tower",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Space Needle is a world-renowned landmark located in tower.",
-    "search_query": "Space Needle"
-  },
-  "unnamed.webp": {
-    "prominent_attraction": "India Gate",
-    "specific_subject": "India Gate",
-    "city": "",
-    "country": "",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "India Gate is a notable landmark.",
-    "search_query": "India Gate"
   },
   "images.jpeg": {
     "prominent_attraction": "Taj Mahal",
@@ -229,26 +199,6 @@
     "summary": "Financial District, Toronto is a world-renowned landmark located in Pulau Pinang, Malaysia.",
     "search_query": "Financial District, Toronto Pulau Pinang"
   },
-  "eiffel tower paris": {
-    "prominent_attraction": "Groenerei (Brugge)",
-    "specific_subject": "Groenerei (Brugge)",
-    "city": "",
-    "country": "",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Groenerei (Brugge) is a notable landmark.",
-    "search_query": "Groenerei (Brugge)"
-  },
-  "lm:169965": {
-    "prominent_attraction": "Riddarholmen",
-    "specific_subject": "Riddarholmen",
-    "city": "",
-    "country": "",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Riddarholmen is a notable landmark.",
-    "search_query": "Riddarholmen"
-  },
   "lm:112189": {
     "prominent_attraction": "Saint Basil's Cathedral",
     "specific_subject": "Monument to Minin and Pozharsky",
@@ -259,24 +209,54 @@
     "summary": "Located on Moscow's Red Square directly in front of the world-famous Saint Basil's Cathedral, this bronze statue commemorates Dmitry Pozharsky and Kuzma Minin, leaders of the 1612 resistance.",
     "search_query": "Saint Basil Cathedral Moscow"
   },
-  "lm:190216": {
-    "prominent_attraction": "Church of the Saviour on the Blood",
-    "specific_subject": "Church of the Saviour on the Blood",
-    "city": "",
-    "country": "church",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Church of the Saviour on the Blood is a world-renowned landmark located in church.",
-    "search_query": "Church of the Saviour on the Blood"
+  "eiffel tower paris": {
+    "prominent_attraction": "Eiffel Tower",
+    "specific_subject": "Eiffel Tower",
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.8584,
+    "longitude": 2.2945,
+    "summary": "Constructed in 1889 for the Exposition Universelle, the Eiffel Tower is the quintessential global icon of Paris and France, standing 330 meters tall on the Champ de Mars.",
+    "search_query": "Eiffel Tower Paris France"
   },
   "lm:47378": {
     "prominent_attraction": "Eiffel Tower",
     "specific_subject": "Eiffel Tower",
-    "city": "",
-    "country": "tower",
-    "latitude": 0.0,
-    "longitude": 0.0,
-    "summary": "Eiffel Tower is a world-renowned landmark located in tower.",
-    "search_query": "Eiffel Tower"
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.8584,
+    "longitude": 2.2945,
+    "summary": "Constructed in 1889 for the Exposition Universelle, the Eiffel Tower is the quintessential global icon of Paris and France, standing 330 meters tall on the Champ de Mars.",
+    "search_query": "Eiffel Tower Paris France"
+  },
+  "gateway of india": {
+    "prominent_attraction": "Gateway of India",
+    "specific_subject": "Gateway of India",
+    "city": "Mumbai",
+    "country": "India",
+    "latitude": 18.922,
+    "longitude": 72.8347,
+    "summary": "The Gateway of India is an iconic 20th-century Indo-Saracenic arch-monument overlooking the Arabian Sea in Mumbai, erected to commemorate the landing of King George V and Queen Mary.",
+    "search_query": "Gateway of India Mumbai"
+  },
+  "lm:60730": {
+    "prominent_attraction": "Gateway of India",
+    "specific_subject": "Gateway of India",
+    "city": "Mumbai",
+    "country": "India",
+    "latitude": 18.922,
+    "longitude": 72.8347,
+    "summary": "The Gateway of India is an iconic 20th-century Indo-Saracenic arch-monument overlooking the Arabian Sea in Mumbai, erected to commemorate the landing of King George V and Queen Mary.",
+    "search_query": "Gateway of India Mumbai"
+  },
+  "lm:190216": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Monument to Minin and Pozharsky",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Located on Moscow's Red Square directly in front of the world-famous Saint Basil's Cathedral, this bronze statue commemorates Dmitry Pozharsky and Kuzma Minin, leaders of the 1612 resistance.",
+    "search_query": "Saint Basil Cathedral Moscow"
   }
 }
