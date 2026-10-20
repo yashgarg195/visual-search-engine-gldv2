@@ -183,22 +183,28 @@
               Located on Moscow's Red Square, Saint Basil's Cathedral is world-renowned for its colorful onion domes.
             </p>
             
-            <!-- Canonical Reference Photos Card (Horizontally Scrollable) -->
-            <div class="ref-gallery-section" id="refGallerySection">
-              <div class="ref-gallery-header">
-                <h4>Canonical Reference Photos</h4>
-                <span class="ref-gallery-sub">&larr; Scroll horizontally &rarr;</span>
+            <section class="reference-evidence-card" id="refGallerySection" aria-labelledby="referenceGalleryTitle">
+              <div class="reference-evidence-header">
+                <div>
+                  <span class="evidence-kicker">Reference atlas</span>
+                  <h4 id="referenceGalleryTitle">Canonical views from the web</h4>
+                </div>
+                <div class="gallery-controls" aria-label="Reference photo navigation">
+                  <button class="gallery-scroll-button" id="galleryScrollPrev" type="button" aria-label="Show previous reference photos">←</button>
+                  <button class="gallery-scroll-button" id="galleryScrollNext" type="button" aria-label="Show next reference photos">→</button>
+                </div>
               </div>
-              <div class="ref-gallery-scroll-wrap" id="refGalleryGrid">
+              <div class="ref-gallery-scroll-wrap" id="refGalleryGrid" tabindex="0" aria-label="Scrollable canonical landmark reference photos">
                 <!-- Horizontally injected via app.js -->
               </div>
-            </div>
+            </section>
           </div>
 
           <!-- Right: Interactive Google Maps with Pin Embedded on Page -->
-          <div class="intel-map-wrap">
+          <aside class="map-evidence-card">
             <div class="map-header">
-              <span class="map-label">📍 Geographic Location (Google Maps)</span>
+              <span class="evidence-kicker">Place context</span>
+              <span class="map-label">Map position</span>
             </div>
             <div id="mapContainer" class="map-container">
               <iframe
@@ -212,7 +218,7 @@
               ></iframe>
             </div>
             <div class="coords-display" id="coordsDisplay">55.7525° N, 37.6231° E</div>
-          </div>
+          </aside>
         </div>
       </div>
 
@@ -220,14 +226,14 @@
       <div class="top-candidate-card" id="topCandidateCard">
         <div class="candidate-header">
           <div class="candidate-badge">Top Identified Landmark</div>
-          <span class="confidence-tag" id="candMargin">Confidence: +2.28 Margin</span>
+          <span class="confidence-tag" id="candMargin">Lead: +2.28 over next candidate</span>
         </div>
         <div class="candidate-body">
           <h2 id="candName" class="candidate-title">Eiffel Tower</h2>
           <div class="candidate-meta">
             <span>Landmark ID: <strong id="candId">47378</strong></span>
             <span>Split: <strong id="candSplit">train</strong></span>
-            <span>Total Vote Score: <strong id="candScore">2.6056</strong></span>
+            <span>Evidence total: <strong id="candScore">2.6056</strong></span>
             <span>Supporting Matches: <strong id="candMatches">8 images</strong></span>
             <span id="candHierarchyWrap" style="display:none">Type: <span class="badge" id="candHierarchy">tower</span></span>
           </div>
@@ -251,6 +257,6 @@
     </section>
   </div>
 
-  <script src="/static/app.js?v=2.6"></script>
+  <script src="/static/app.js?v=2.7"></script>
 </body>
 </html>

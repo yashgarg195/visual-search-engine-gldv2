@@ -2,6 +2,7 @@
 
 import pytest
 from src.reranking.hybrid_fusion import HybridMultiSignalReranker, haversine_distance_km
+from src.index.voting import compute_similarity_weighted_votes
 
 
 def test_haversine_distance():
@@ -96,3 +97,27 @@ def test_hybrid_fusion_reranker_graceful_fallback():
     assert reranked[0]["rank"] == 1
     assert reranked[1]["rank"] == 2
     assert reranked[0]["final_score"] >= reranked[1]["final_score"]
+
+
+def test_voting_uses_fused_scores_when_present():
+    voting = compute_similarity_weighted_votes(
+        [
+            {
+                "split": "train",
+                "landmark_id": "raw-winner",
+                "landmark_name": "Raw Winner",
+                "score": 0.95,
+                "final_score": 0.30,
+            },
+            {
+                "split": "train",
+                "landmark_id": "fused-winner",
+                "landmark_name": "Fused Winner",
+                "score": 0.70,
+                "final_score": 0.80,
+            },
+        ]
+    )
+
+    assert voting.leading_candidate is not None
+    assert voting.leading_candidate.landmark_name == "Fused Winner"

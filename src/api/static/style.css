@@ -840,29 +840,61 @@ h1 {
   margin-bottom: 1.25rem;
 }
 
-/* Reference Gallery */
-.ref-gallery-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 1rem;
+/* Reference evidence */
+.reference-evidence-card,
+.map-evidence-card {
+  background: rgba(7, 14, 27, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.2);
 }
 
-.ref-gallery-header {
+.reference-evidence-card {
+  padding: 1rem;
+}
+
+.reference-evidence-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 0.75rem;
 }
 
-.ref-gallery-header h4 {
+.reference-evidence-header h4 {
   font-size: 0.95rem;
   font-weight: 700;
   color: #f8fafc;
   margin: 0;
 }
 
-.ref-gallery-sub {
+.evidence-kicker {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #7dd3fc;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.gallery-controls {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.gallery-scroll-button {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.8);
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.gallery-scroll-button:hover,
+.gallery-scroll-button:focus-visible {
+  background: #e0f2fe;
+  color: #0f172a;
+  outline: none;
 }
 .ref-gallery-scroll-wrap {
   display: flex;
@@ -870,8 +902,9 @@ h1 {
   gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 6px 2px 10px 2px;
+  padding: 2px 2px 10px;
   scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -891,15 +924,16 @@ h1 {
 }
 
 .ref-card {
-  flex: 0 0 160px;
-  width: 160px;
-  background: rgba(15, 23, 42, 0.7);
+  flex: 0 0 190px;
+  width: 190px;
+  background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, border-color 0.2s;
+  scroll-snap-align: start;
 }
 
 .ref-card:hover {
@@ -910,7 +944,7 @@ h1 {
 .ref-img-wrap {
   position: relative;
   width: 100%;
-  height: 95px;
+  height: 116px;
   overflow: hidden;
   background: #000;
 }
@@ -988,11 +1022,12 @@ h1 {
   color: #ffffff;
 }
 
-/* Map Wrap */
-.intel-map-wrap {
+/* Map evidence */
+.map-evidence-card {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1rem;
 }
 
 .map-header {
@@ -1005,8 +1040,7 @@ h1 {
   font-size: 0.85rem;
   font-weight: 700;
   color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
 }
 
 .gmaps-btn {
@@ -1026,8 +1060,8 @@ h1 {
 .map-container {
   width: 100%;
   height: 250px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
   overflow: hidden;
   background: #0f172a;
   position: relative;

@@ -46,7 +46,8 @@ def compute_similarity_weighted_votes(
     """Compute similarity-weighted voting across a list of retrieved Top-K match dictionaries.
 
     Each match is expected to contain:
-        - 'score': float (cosine similarity)
+        - 'final_score': float (optional fused ranking score)
+        - 'score': float (cosine similarity fallback)
         - 'split': str
         - 'landmark_id': str
         - 'landmark_name': str
@@ -68,7 +69,7 @@ def compute_similarity_weighted_votes(
     for match in retrieved_matches:
         split = str(match.get("split", "train")).strip().lower()
         lid = str(match.get("landmark_id", "unknown")).strip()
-        score = float(match.get("score", 0.0))
+        score = float(match.get("final_score", match.get("score", 0.0)))
         # Use positive similarity weight
         weight = max(0.0, score)
 

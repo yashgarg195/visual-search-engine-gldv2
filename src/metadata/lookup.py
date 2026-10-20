@@ -24,6 +24,7 @@ class LandmarkLookupTable:
         self._image_cache: Dict[str, Dict[str, Any]] = {}
         # Key: (split.lower(), landmark_id.strip()) -> (latitude, longitude)
         self._coordinates_table: Dict[Tuple[str, str], Tuple[float, float]] = {}
+        self._lazy_parquet_paths: list[Path] = []
 
     def load_from_parquet(self, parquet_path: Path) -> int:
         """Populate lookup table from a processed metadata Parquet file."""
@@ -31,8 +32,15 @@ class LandmarkLookupTable:
         if not parquet_path.is_file():
             raise FileNotFoundError(f"Parquet metadata file not found: {parquet_path}")
 
+        import pyarrow.parquet as pq
+
+        total_rows = pq.ParquetFile(parquet_path).metadata.num_rows
+        if total_rows > 100_000:
+            self._lazy_parquet_paths.append(parquet_path)
+            logger.info("Registered %s for on-demand metadata lookup (%d records)", parquet_path.name, total_rows)
+            return total_rows
+
         df = pd.read_parquet(parquet_path)
-        total_rows = len(df)
 
         # 1. Fast vectorized landmark info population (deduplicate landmarks first)
         landmark_cols = [
@@ -127,6 +135,45 @@ class LandmarkLookupTable:
                     latitude=lat,
                     longitude=lon,
                 )
+            return info
+
+        for parquet_path in self._lazy_parquet_paths:
+            try:
+                rows = pd.read_parquet(
+                    parquet_path,
+                    columns=[
+                        "split",
+                        "landmark_id",
+                        "landmark_name",
+                        "is_resolved",
+                        "category_url",
+                        "hierarchical_label",
+                        "supercategory",
+                        "natural_or_human_made",
+                    ],
+                    filters=[("landmark_id", "==", key[1])],
+                )
+            except Exception as exc:
+                logger.warning("On-demand metadata lookup failed for %s: %s", parquet_path.name, exc)
+                continue
+
+            if rows.empty:
+                continue
+            row = rows[rows["split"].astype(str).str.lower() == key[0]]
+            if row.empty:
+                continue
+            record = row.iloc[0]
+            info = LandmarkInfo(
+                split=key[0],
+                landmark_id=key[1],
+                landmark_name=str(record.get("landmark_name", f"Landmark #{key[1]}")),
+                is_resolved=bool(record.get("is_resolved", False)),
+                category_url=record.get("category_url"),
+                hierarchical_label=record.get("hierarchical_label"),
+                supercategory=record.get("supercategory"),
+                natural_or_human_made=record.get("natural_or_human_made"),
+            )
+            self._landmark_cache[key] = info
             return info
 
         # Fallback when landmark was not indexed

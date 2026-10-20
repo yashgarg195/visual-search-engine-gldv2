@@ -66,6 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const locSpecificName = document.getElementById("locSpecificName");
   const locSummary = document.getElementById("locSummary");
   const refGalleryGrid = document.getElementById("refGalleryGrid");
+  const galleryScrollPrev = document.getElementById("galleryScrollPrev");
+  const galleryScrollNext = document.getElementById("galleryScrollNext");
 
   const coordsDisplay = document.getElementById("coordsDisplay");
 
@@ -290,6 +292,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   closeErrorBtn.addEventListener("click", hideError);
 
+  function scrollReferenceGallery(direction) {
+    if (!refGalleryGrid) return;
+    refGalleryGrid.scrollBy({ left: direction * Math.max(220, refGalleryGrid.clientWidth * 0.72), behavior: "smooth" });
+  }
+
+  galleryScrollPrev?.addEventListener("click", () => scrollReferenceGallery(-1));
+  galleryScrollNext?.addEventListener("click", () => scrollReferenceGallery(1));
+
   // 6. Search Execution
   searchSubmitBtn.addEventListener("click", triggerSearch);
 
@@ -344,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
           nprobe: nprobe,
           index_type: indexType,
           ef_search: efSearch,
-          rerank: false,
+          rerank: true,
         }),
       });
 
@@ -371,7 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("nprobe", nprobe);
       formData.append("index_type", indexType);
       formData.append("ef_search", efSearch);
-      formData.append("rerank", "false");
+      formData.append("rerank", "true");
 
       const response = await fetch("/api/search/image", {
         method: "POST",
@@ -446,7 +456,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let mapQuery = "";
 
       if (!isNaN(lat) && !isNaN(lon) && (lat !== 0 || lon !== 0)) {
-        coordsDisplay.textContent = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
+        const latitudeHemisphere = lat >= 0 ? "N" : "S";
+        const longitudeHemisphere = lon >= 0 ? "E" : "W";
+        coordsDisplay.textContent = `${Math.abs(lat).toFixed(4)}° ${latitudeHemisphere}, ${Math.abs(lon).toFixed(4)}° ${longitudeHemisphere}`;
         mapQuery = `${lat},${lon}`;
       } else if (loc.prominent_attraction) {
         coordsDisplay.textContent = "Coordinates estimated";
@@ -490,7 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
       candId.textContent = v.landmark_id;
       candSplit.textContent = v.split || "train";
       candScore.textContent = v.total_vote_score;
-      candMargin.textContent = `Confidence: +${v.confidence_margin} Margin`;
+      candMargin.textContent = `Lead: +${v.confidence_margin} over next candidate`;
       candMatches.textContent = `${v.match_count} image matches`;
 
       if (v.hierarchical_label && v.hierarchical_label !== "nan") {
@@ -541,10 +553,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="match-top">
               <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                 <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
-                ${isVicinityVerified ? `<span class="vicinity-badge">📍 Vicinity Verified</span>` : ""}
+                ${isVicinityVerified ? `<span class="vicinity-badge">📍 Coordinate-supported</span>` : ""}
                 ${isConsensus ? `<span class="consensus-badge">⭐ CONSENSUS</span>` : ""}
               </div>
-              <span class="score-display">Fused: ${scoreVal.toFixed(4)}</span>
+              <span class="score-display">Evidence score ${scoreVal.toFixed(4)}</span>
             </div>
             <div class="score-bar-bg">
               <div class="score-bar-fill" style="width: ${pct}%"></div>

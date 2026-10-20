@@ -34,7 +34,6 @@ class SearchEngineService:
         self.index_ivf: Optional[IVFPQIndex] = None
         self.index_hnsw: Optional[HNSWPQIndex] = None
         self.index: Optional[IVFPQIndex] = None
-        self.mapping_lookup: Dict[int, Dict[str, Any]] = {}
         self.df_mapping: Optional[pd.DataFrame] = None
         self.lookup: Optional[LandmarkLookupTable] = None
         self.is_ready = False
@@ -68,15 +67,11 @@ class SearchEngineService:
         else:
             logger.warning("FAISS IVF-PQ index file not found in %s", self.cfg.index_dir)
 
-        # 2b. Load FAISS HNSW-PQ Index if available
-        self._ensure_hnsw_loaded()
-
         # 3. Load ID Mapping Table
         mapping_path = self.cfg.index_dir / "id_mapping.parquet"
         if mapping_path.is_file():
             logger.info("Loading ID mapping table from %s...", mapping_path)
-            self.df_mapping = pd.read_parquet(mapping_path)
-            self.mapping_lookup = self.df_mapping.set_index("faiss_id").to_dict(orient="index")
+            self.df_mapping = pd.read_parquet(mapping_path).set_index("faiss_id", drop=False)
         else:
             logger.warning("ID mapping table not found at %s. Results will lack image ID resolution.", mapping_path)
 
@@ -126,13 +121,13 @@ class SearchEngineService:
 
     def get_info(self) -> Dict[str, Any]:
         """Return system stats and index info."""
-        self._ensure_hnsw_loaded()
         available_indices = []
+        hnsw_available = self.index_hnsw is not None or (self.cfg.index_dir / "hnswpq_populated.index").is_file()
         if self.index_ivf is not None:
             available_indices.append("ivfpq")
-        if self.index_hnsw is not None:
+        if hnsw_available:
             available_indices.append("hnswpq")
-        if self.index_ivf is not None and self.index_hnsw is not None:
+        if self.index_ivf is not None and hnsw_available:
             available_indices.append("ensemble")
 
         total_vecs = self.index_ivf.total_vectors if self.index_ivf else (self.index_hnsw.total_vectors if self.index_hnsw else 0)
@@ -161,7 +156,7 @@ class SearchEngineService:
         nprobe: int = 64,
         index_type: str = "ivfpq",
         ef_search: int = 64,
-        rerank: bool = False,
+        rerank: bool = True,
         alpha_qe: bool = False,
         query_image_path: Optional[Path] = None,
     ) -> Dict[str, Any]:
@@ -172,7 +167,7 @@ class SearchEngineService:
         is_ensemble = "ensemble" in index_type.lower() or "hybrid" in index_type.lower()
         is_hnsw = "hnsw" in index_type.lower() and not is_ensemble
 
-        search_k = max(top_k + 5, 20)
+        search_k = min(100, max(top_k * 5, 50))
         fusion_meta: Dict[int, Dict[str, Any]] = {}
 
         if is_ensemble:
@@ -247,7 +242,7 @@ class SearchEngineService:
         if rerank and self.df_mapping is not None:
             reranker = TwoStageReranker(self.cfg.embedding_dir, self.df_mapping)
             valid_ids = [fid for fid in faiss_ids if fid >= 0]
-            reranked = reranker.rerank_candidates(query_emb, valid_ids, top_k=top_k + 5)
+            reranked = reranker.rerank_candidates(query_emb, valid_ids, top_k=search_k)
             faiss_ids = np.array([r["faiss_id"] for r in reranked], dtype=np.int64)
             scores = np.array([r["exact_score"] for r in reranked], dtype=np.float32)
 
@@ -259,7 +254,7 @@ class SearchEngineService:
             if fid < 0:
                 continue
 
-            meta_row = self.mapping_lookup.get(int(fid), {})
+            meta_row = self._lookup_mapping_row(int(fid))
             img_id = str(meta_row.get("image_id", ""))
             lid = str(meta_row.get("landmark_id", ""))
             split = str(meta_row.get("split", "train"))
@@ -301,49 +296,20 @@ class SearchEngineService:
 
             retrieved_matches.append(match_data)
             rank += 1
-            if len(retrieved_matches) >= top_k:
-                break
-
-
-        # 6. Location Resolution & Canonical Reference Images
-        location_info = None
-        reference_images: List[Dict[str, Any]] = []
-        if retrieved_matches:
-            try:
-                loc_res = self.location_resolver.resolve(query_desc, retrieved_matches)
-                if loc_res:
-                    location_info = loc_res.to_dict()
-                    raw_refs = self.reference_fetcher.fetch_reference_images(loc_res.search_query, max_images=4)
-                    reference_images = raw_refs
-            except Exception as e:
-                logger.warning("Location resolution / reference pipeline failed: %s", e)
-
-        # 7. Hybrid Multi-Signal Fusion Reranking (50% Visual + 30% Vicinity Consensus + 20% Spatial Proximity)
+        # 6. Hybrid Multi-Signal Fusion Reranking (50% Visual + 30% Vicinity Consensus + 20% Spatial Proximity)
         t_fusion_start = time.perf_counter()
-        prominent_anchor = location_info.get("prominent_attraction") if location_info else None
-        anchor_coords = None
-        if location_info and location_info.get("latitude") and location_info.get("longitude"):
-            try:
-                anchor_coords = (float(location_info["latitude"]), float(location_info["longitude"]))
-            except (ValueError, TypeError):
-                anchor_coords = None
-
         final_matches = self.fusion_reranker.rerank(
             retrieved_matches=retrieved_matches,
-            prominent_anchor=prominent_anchor,
-            anchor_coords=anchor_coords,
         )
         t_fusion_ms = (time.perf_counter() - t_fusion_start) * 1000.0
 
-        # Voting aggregation based on fused candidates
         voting_result = compute_similarity_weighted_votes(final_matches)
         voting_summary: Optional[Dict[str, Any]] = None
 
         if voting_result.leading_candidate:
             lead = voting_result.leading_candidate
-            display_name = prominent_anchor if (prominent_anchor and location_info) else lead.landmark_name
             voting_summary = {
-                "landmark_name": display_name,
+                "landmark_name": lead.landmark_name,
                 "specific_landmark": lead.landmark_name,
                 "landmark_id": lead.landmark_id,
                 "split": lead.split,
@@ -353,6 +319,20 @@ class SearchEngineService:
                 "category_url": lead.category_url or "",
                 "hierarchical_label": lead.hierarchical_label or "",
             }
+
+        location_info = None
+        reference_images: List[Dict[str, Any]] = []
+        if final_matches:
+            try:
+                loc_res = self.location_resolver.resolve(query_desc, final_matches)
+                if loc_res:
+                    location_info = loc_res.to_dict()
+                    reference_images = self.reference_fetcher.fetch_reference_images(
+                        loc_res.search_query,
+                        max_images=4,
+                    )
+            except Exception as e:
+                logger.warning("Location resolution / reference pipeline failed: %s", e)
 
         return {
             "query_desc": query_desc,
@@ -368,6 +348,14 @@ class SearchEngineService:
             "matches": final_matches[:top_k],
         }
 
+    def _lookup_mapping_row(self, faiss_id: int) -> Dict[str, Any]:
+        if self.df_mapping is None or faiss_id not in self.df_mapping.index:
+            return {}
+        row = self.df_mapping.loc[faiss_id]
+        if isinstance(row, pd.DataFrame):
+            row = row.iloc[0]
+        return row.to_dict()
+
     def search_text(
         self,
         query_text: str,
@@ -375,7 +363,7 @@ class SearchEngineService:
         nprobe: int = 64,
         index_type: str = "ivfpq",
         ef_search: int = 64,
-        rerank: bool = False,
+        rerank: bool = True,
         alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode natural language text query and retrieve matching landmarks."""
@@ -411,7 +399,7 @@ class SearchEngineService:
         nprobe: int = 64,
         index_type: str = "ivfpq",
         ef_search: int = 64,
-        rerank: bool = False,
+        rerank: bool = True,
         alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode raw image bytes into OpenCLIP representation and retrieve matching landmarks."""

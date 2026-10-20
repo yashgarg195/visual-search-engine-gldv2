@@ -182,7 +182,7 @@ class HybridMultiSignalReranker:
             m_copy["visual_sim"] = round(float(v_sim), 4)
             m_copy["vicinity_score"] = round(float(vicinity_score), 4)
             m_copy["spatial_score"] = round(float(spatial_score), 4)
-            m_copy["is_vicinity_verified"] = bool(is_winning_vicinity or (dist_km is not None and dist_km <= 2.0))
+            m_copy["is_vicinity_verified"] = bool(dist_km is not None and dist_km <= 2.0)
             m_copy["distance_km"] = round(float(dist_km), 2) if dist_km is not None else None
             m_copy["vicinity_cluster"] = v_key.title() if v_key else "Landmark Area"
 

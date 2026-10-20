@@ -10,9 +10,9 @@ The **Visual Landmark Search Engine** is a high-performance visual retrieval and
 
 The system combines:
 1. **Dense Vector Search**: Multi-index retrieval supporting **FAISS IVF-PQ** (Inverted File Product Quantization) and a **high-connectivity HNSW-PQ** graph ($M=64, \text{efConstruction}=256$), with **Reciprocal Rank Fusion (RRF)** for hybrid ensemble search.
-2. **AI Location Intelligence**: Gemini 3.8 Flash combined with OpenStreetMap Nominatim and a pre-warmed disk cache for automated reverse geocoding, anchor resolution, and landmark summarization.
+2. **AI Location Intelligence**: Gemini 3.8 Flash combined with OpenStreetMap Nominatim and a pre-warmed disk cache for supplemental reverse geocoding, contextual summaries, and canonical reference-image queries. It never changes the identified landmark.
 3. **Stage-2 Hybrid Multi-Signal Fusion Reranking**: Ultra-fast ($< 2\text{ ms}$) fusion combining visual cosine similarity, physical vicinity consensus, and geodesic spatial proximity to resolve split landmark IDs and eliminate geographic false positives.
-4. **Interactive Web Dashboard**: Modern single-page application with drag-and-drop / clipboard image search, responsive thumbnail match cards, horizontal reference gallery scrolling, and direct on-page Google Maps iframe pin rendering.
+4. **Interactive Web Dashboard**: Modern single-page application with drag-and-drop / clipboard image search, thumbnail match cards, an evidence-style horizontal reference atlas, and a rounded embedded Google Maps card.
 
 ---
 
@@ -36,12 +36,11 @@ The system combines:
                      [Reciprocal Rank Fusion]
                                  │
                                  ▼
-                   [Top-k Candidate Retrievals]
+                [50–100 Candidate Retrievals]
                                  │
                                  ├───────────────────────────────┐
                                  ▼                               ▼
-                 [Location Intelligence Resolver]     [GLDv2 Metadata Store]
-                 (Gemini + Nominatim + Cache)         (Parquet IDs, Lat/Lon)
+                  [Exact Vector Reranking]       [GLDv2 Metadata Store]
                                  │                               │
                                  └───────────────┬───────────────┘
                                                  ▼
@@ -53,6 +52,8 @@ The system combines:
                                                  ▼
                              [Similarity-Weighted Voting Aggregator]
                                                  │
+                                                 ├───────────────► [Location Intelligence + Reference Images]
+                                                 │                 (supplemental only)
                                                  ▼
                                      [Interactive Web UI]
                                      - Fused Matches with Thumbnails
@@ -71,10 +72,10 @@ The system combines:
 | **Vector DB (Inverted)** | FAISS `IndexIVFPQ` | 5,052,992 vectors, $nlist=4096, m=64, \text{bits}=8$, default $nprobe=64$ |
 | **Vector DB (Graph)** | FAISS `IndexHNSWPQ` | 5,052,992 vectors, $M=64, \text{efConstruction}=256, m=64$, default $efSearch=128$ |
 | **Ensemble Reranker** | Reciprocal Rank Fusion (RRF) | Constant $k=60$ fusing IVF-PQ and HNSW-PQ ranks |
-| **Fusion Reranker** | `HybridMultiSignalReranker` | $w_{\text{vis}}=0.50, w_{\text{vic}}=0.30, w_{\text{geo}}=0.20, \sigma_{\text{spatial}}=5.0\text{ km}$ ($< 2\text{ ms}$ latency) |
+| **Fusion Reranker** | `HybridMultiSignalReranker` | $w_{\text{vis}}=0.50, w_{\text{vic}}=0.30, w_{\text{geo}}=0.20, \sigma_{\text{spatial}}=5.0\text{ km}$; voting uses its `final_score` |
 | **Location Intel** | Gemini 3.8 Flash + Nominatim | Persistent JSON cache in `outputs/cache/landmark_intel_cache.json` |
 | **API Backend** | FastAPI + Uvicorn | Async endpoints (`/api/search/image`, `/api/search/text`, `/api/info`, `/api/image/...`) |
-| **Frontend** | Vanilla JS + Modern CSS | No build step required; embedded Google Maps `<iframe>`; thumbnail cards |
+| **Frontend** | Vanilla JS + Modern CSS | No build step required; evidence atlas with horizontal scroll controls; rounded embedded Google Maps `<iframe>` |
 
 ---
 
@@ -181,11 +182,23 @@ visual-search-engine-gldv2/
 * **Local Dataset Image Serving & Match Card Thumbnails**:
   - Added dedicated FastAPI endpoint `GET /api/image/{split}/{a}/{b}/{c}/{image_id}.jpg` to directly stream local GLDv2 images.
   - Added match card image thumbnails in `app.js` and responsive CSS in `style.css` (`.match-card-inner`, `.match-thumb-wrap`, `.match-thumb`), featuring subtle hover-zoom transitions and graceful `onerror` hiding.
-* **Parameter & Metadata Hygiene**:
+* **Evidence-oriented UI and ranking labels**:
+  - Web-fetched canonical images render in one scrollable `Reference atlas` card, with snap-aligned tiles and explicit left/right controls.
+  - The map is a matching `map-evidence-card` with a 20px outer radius and a clipped 15px map frame.
+  - Displayed result language is intentionally non-probabilistic: `Evidence score`, `Evidence total`, and lead-over-runner-up margin replace misleading confidence labels.
+  - `Coordinate-supported` only appears for candidates within 2 km of the computed spatial centroid; membership in the winning vicinity alone is insufficient.
+* **Parameter and metadata hygiene**:
   - Removed deprecated `alpha_qe: false` request payloads from client search calls.
   - Synchronized vector counts across header pill and HNSW dropdown to accurately display `5.05M` / `5,052,992 Vectors`.
   - Cleaned dead DOM selector `gmapsLink`.
-  - Bumped script cache-busting parameter to `app.js?v=2.6`.
+  - Bumped script cache-busting parameter to `app.js?v=2.7`.
+
+### E. Accuracy and Memory-Safe Runtime (Current)
+* **Exact reranking is now the default** for API and browser searches. Approximate IVF/HNSW retrieval expands to `min(100, max(top_k * 5, 50))` candidates, exact-reranks that pool, then fuses and returns the requested `top_k`.
+* **One ranking truth**: similarity-weighted voting consumes `final_score` when present, which matches the score shown in the result cards. The LLM location result is computed after voting and cannot rename or rerank the visual winner.
+* **Lazy HNSW loading**: startup loads IVF-PQ only. HNSW-PQ is loaded when a user selects HNSW or Ensemble search. `GET /api/info` advertises it as available while reporting `hnsw_vectors: 0` until it is resident.
+* **Memory-safe metadata**: the 5M-row FAISS mapping remains a pandas index instead of being duplicated as a Python dictionary. Metadata Parquet files over 100,000 records are registered and queried on demand by landmark ID; this prevents macOS startup termination from eager expansion.
+* **Operational constraint**: selecting HNSW/Ensemble still requires the additional graph-memory budget (~2.8 GB on disk plus FAISS overhead). Use the IVF default when testing the dashboard on a memory-constrained Mac.
 
 ---
 
@@ -201,6 +214,8 @@ OMP_NUM_THREADS="1" uvicorn src.api.app:app --host 127.0.0.1 --port 8000
 ```
 Open your browser to: **`http://127.0.0.1:8000`**
 
+Startup is complete only after the log prints `Application startup complete.` On a local Mac, expect `/api/info` to report `hnsw_vectors: 0` until an HNSW or Ensemble search is requested.
+
 ### Verify Image Thumbnail Serving
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/api/image/train/0/0/0/000001.jpg
@@ -209,7 +224,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/api/image/train/0
 
 ### Run CLI Searches
 ```bash
-# Text query using HNSW graph index
+# Text query using HNSW graph index (loads the graph on demand)
 python scripts/search.py --query "Saint Basil Cathedral Moscow" --index-type hnswpq --top-k 10
 
 # Image query using IVF-PQ index
@@ -221,7 +236,7 @@ python scripts/search.py --query "Taj Mahal Agra" --index-type ensemble --top-k 
 
 ### Run the Test Suite
 ```bash
-# Run all unit and integration tests (34 tests, all passing)
+# Run all unit and integration tests
 pytest tests/
 ```
 
@@ -238,7 +253,7 @@ Expected output:
   "device": "mps",
   "total_vectors": 5052992,
   "ivf_vectors": 5052992,
-  "hnsw_vectors": 5052992,
+  "hnsw_vectors": 0,
   "available_indices": ["ivfpq", "hnswpq", "ensemble"],
   "default_index": "ivfpq",
   "default_nprobe": 64,
@@ -250,7 +265,47 @@ Expected output:
 
 ---
 
-## 7. Recommended Next Steps for Augmentation
+## 8. Frontend & UI Architecture Guide for Incoming Agent
+
+If you are the incoming agent assigned to UI/UX tasks, review this section before making changes:
+
+### Key UI File Locations
+* **HTML Skeleton**: [`src/api/static/index.html`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/api/static/index.html)
+* **Frontend Controller**: [`src/api/static/app.js`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/api/static/app.js)
+* **Stylesheet**: [`src/api/static/style.css`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/api/static/style.css)
+
+### Core UI Component Structure
+1. **Header & Health Indicators** (`#systemPills`):
+   - Vector Count (`#pillVectors`), Model tag, Device tag (`#pillDevice`).
+   - Populated dynamically on page load via `GET /api/info`.
+2. **Query Input Section**:
+   - Tab switch: `#tabImageBtn` (drag-and-drop / clipboard paste) and `#tabTextBtn` (natural language query).
+   - Sample prompt chips (`.sample-chip`) for instant pre-baked queries.
+   - Tuning parameters dropdown: dynamically updates between Voronoi Probes (`nprobe`), Search Depth (`efSearch`), and Hybrid Depth depending on index selected.
+3. **Execution Latency Bar** (`.metrics-panel`):
+   - Displays Embedding Latency, Vector Search Latency, Multi-Signal Fusion Latency, and Total Latency in milliseconds.
+4. **Evidence Atlas & Location Intelligence** (`#locationIntelCard`):
+   - **Reference Atlas** (`#refGalleryCard`, `#refGalleryGrid`): Horizontally scrollable container with snap alignment and left/right button controls (`#refScrollLeft`, `#refScrollRight`) displaying canonical reference photos fetched from Wikimedia.
+   - **Google Maps Evidence Card** (`.map-evidence-card`, `#mapContainer`): Rounded embedded `<iframe>` (`#gmapsIframe`) showing exact landmark pin. Coordinates displayed in `#coordsDisplay`.
+5. **Top Candidate Card** (`#topCandidateCard`):
+   - Displays identified landmark name, confidence margin over runner-up, match count, split, and Wikimedia Category link button.
+6. **Matches Grid** (`#matchesGrid`):
+   - Dynamically populated with `.match-card` elements containing:
+     - Local dataset thumbnail image (`/api/image/{split}/{a}/{b}/{c}/{image_id}.jpg`) with lazy loading and error fallback.
+     - Rank badge (`.rank-badge`, `.rank-top`), fused evidence score (`.score-display`), and normalized progress bar (`.score-bar-fill`).
+     - Badges: `📍 Vicinity Verified` and `⭐ CONSENSUS`.
+     - Evidence breakdown (`Vis X% | Vic Y% | Geo Z%`) and distance in km.
+
+### Standing UI Constraints
+* **Embedded Maps Only**: Do NOT replace the on-page Google Maps `<iframe>` with external redirect links. The pin must remain rendered in place.
+* **Cache-Busting Requirement**: Whenever you edit `app.js` or `style.css`, bump the version query parameter in `index.html` (e.g. `<script src="/static/app.js?v=2.8"></script>`) so browsers do not serve stale cached code.
+* **Preserve Zero-LLM Test Rule**: When testing UI interactions or API endpoints, use cached queries or text search rather than repeatedly triggering the live Gemini API.
+* **Fast Startup**: Keep `ivfpq` as the default index selection so local testing runs without loading the 2.8 GB HNSW graph unless specifically evaluating HNSW/Ensemble.
+
+
+---
+
+## 9. Recommended Next Steps for Augmentation
 
 When augmenting this codebase with additional datasets:
 1. **GSV-Cities**: Add 560k Google Street View urban images across 40 global cities. Exact GPS tags and perspective crops make it an ideal complement for spatial proximity.

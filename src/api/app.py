@@ -74,7 +74,7 @@ class TextSearchRequest(BaseModel):
     nprobe: int = Field(64, ge=1, le=256, description="Number of IVF Voronoi clusters to probe")
     index_type: str = Field("ivfpq", description="Vector index algorithm: 'ivfpq', 'hnswpq', or 'ensemble'")
     ef_search: int = Field(64, ge=1, le=512, description="Exploration depth for HNSW graph search")
-    rerank: bool = Field(False, description="Whether to apply two-stage exact re-ranking")
+    rerank: bool = Field(True, description="Whether to apply two-stage exact re-ranking")
     alpha_qe: bool = Field(False, description="Whether to apply α-Query Expansion")
 
 
@@ -137,7 +137,7 @@ def search_by_image(
     nprobe: int = Form(64),
     index_type: str = Form("ivfpq"),
     ef_search: int = Form(64),
-    rerank: bool = Form(False),
+    rerank: bool = Form(True),
     alpha_qe: bool = Form(False),
 ):
     """Upload a query photo to retrieve nearest landmark matches."""
