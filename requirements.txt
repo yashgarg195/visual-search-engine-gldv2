@@ -16,3 +16,16 @@ faiss-cpu>=1.7.4
 
 # Feature Matching & Geometric Verification (Optional Stage 2 Reranking)
 opencv-python-headless>=4.8.0
+
+# API Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+pydantic>=2.0.0
+
+# Reference image / thumbnail fetching
+requests>=2.31.0
+
+# Optional LLM landmark enrichment. The service degrades gracefully without
+# this package installed or without GEMINI_API_KEY set.
+google-genai>=0.3.0

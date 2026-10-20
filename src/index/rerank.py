@@ -15,7 +15,25 @@ class TwoStageReranker:
 
     def __init__(self, embedding_dir: Path, id_mapping_df: pd.DataFrame):
         self.embedding_dir = Path(embedding_dir)
-        self.id_mapping_df = id_mapping_df.set_index("faiss_id")
+        # Duplicate faiss_id values are reachable if a shard is appended twice
+        # by an interrupted build. With duplicates present, .loc[fid] returns a
+        # DataFrame instead of a Series and every lookup below raises. Drop
+        # them up front, keeping the first occurrence.
+        if "faiss_id" in id_mapping_df.columns:
+            dupes = int(id_mapping_df["faiss_id"].duplicated().sum())
+            if dupes:
+                logger.warning(
+                    "ID mapping table contains %d duplicate faiss_id rows; keeping first occurrence of each.",
+                    dupes,
+                )
+                id_mapping_df = id_mapping_df.drop_duplicates(subset="faiss_id", keep="first")
+            self.id_mapping_df = id_mapping_df.set_index("faiss_id")
+        else:
+            # Already indexed by faiss_id.
+            if id_mapping_df.index.has_duplicates:
+                logger.warning("ID mapping index contains duplicates; keeping first occurrence of each.")
+                id_mapping_df = id_mapping_df[~id_mapping_df.index.duplicated(keep="first")]
+            self.id_mapping_df = id_mapping_df
         self._mmap_cache: Dict[str, np.ndarray] = {}
 
     def _get_shard_mmap(self, shard_name: str) -> Optional[np.ndarray]:

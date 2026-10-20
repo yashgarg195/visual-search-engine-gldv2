@@ -7,6 +7,7 @@ import faiss
 import numpy as np
 
 from src.index.base import BaseVectorIndex
+from src.index.threading_utils import faiss_single_thread_on_macos
 from src.utils.logging import get_logger
 
 logger = get_logger("flat_index")
@@ -37,13 +38,10 @@ class FlatIPIndex(BaseVectorIndex):
         if len(vectors) != len(ids):
             raise ValueError(f"Vectors count ({len(vectors)}) != IDs count ({len(ids)})")
 
-        import platform
-        if platform.system() == "Darwin" and hasattr(faiss, "omp_set_num_threads"):
-            faiss.omp_set_num_threads(1)
-
         vectors_f32 = np.ascontiguousarray(vectors, dtype=np.float32)
         ids_i64 = np.ascontiguousarray(ids, dtype=np.int64)
-        self._index.add_with_ids(vectors_f32, ids_i64)
+        with faiss_single_thread_on_macos():
+            self._index.add_with_ids(vectors_f32, ids_i64)
 
     def search(self, query_vectors: np.ndarray, top_k: int) -> Tuple[np.ndarray, np.ndarray]:
         """Perform exact exhaustive search."""
@@ -52,13 +50,10 @@ class FlatIPIndex(BaseVectorIndex):
                 (len(query_vectors), 0), dtype=np.int64
             )
 
-        import platform
-        if platform.system() == "Darwin" and hasattr(faiss, "omp_set_num_threads"):
-            faiss.omp_set_num_threads(1)
-
         queries_f32 = np.ascontiguousarray(query_vectors, dtype=np.float32)
         effective_k = min(top_k, self._index.ntotal)
-        scores, ids = self._index.search(queries_f32, effective_k)
+        with faiss_single_thread_on_macos():
+            scores, ids = self._index.search(queries_f32, effective_k)
         return scores, ids
 
     def save(self, index_path: Path) -> None:

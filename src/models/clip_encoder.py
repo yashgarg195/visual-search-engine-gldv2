@@ -59,11 +59,12 @@ def custom_collate_fn(batch):
     tensors, paths, valids = zip(*batch)
     valid_tensors = [t for t, v in zip(tensors, valids) if v]
     valid_paths = [p for p, v in zip(paths, valids) if v]
+    failed_paths = [p for p, v in zip(paths, valids) if not v]
     if valid_tensors:
         batch_tensor = torch.stack(valid_tensors)
     else:
         batch_tensor = torch.empty(0, 3, 224, 224)
-    return batch_tensor, valid_paths
+    return batch_tensor, valid_paths, failed_paths
 
 
 class CLIPEncoder:
@@ -74,10 +75,12 @@ class CLIPEncoder:
         model_name: str = "ViT-B-32",
         pretrained: str = "openai",
         device: str = "auto",
+        allow_random_init: bool = False,
     ):
         self.model_name = model_name
         self.pretrained = pretrained
         self.device = select_best_device(device)
+        self.weights_are_random = False
 
         logger.info(
             "Loading OpenCLIP model '%s' (pretrained='%s') on device: %s",
@@ -93,21 +96,35 @@ class CLIPEncoder:
                 device=self.device,
             )
         except Exception as e:
-            if self.pretrained and self.pretrained not in ("none", ""):
-                logger.warning(
-                    "Could not load pretrained weights '%s' (%s). "
-                    "Falling back to architecture '%s' with uninitialized weights for offline execution.",
-                    self.pretrained,
-                    e,
-                    self.model_name,
-                )
-                self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-                    self.model_name,
-                    pretrained="",
-                    device=self.device,
-                )
-            else:
+            if not (self.pretrained and self.pretrained not in ("none", "")):
                 raise
+            # Falling back to random weights produces unit-norm embeddings and
+            # plausible-looking scores while every result is pure noise, so it
+            # must never happen implicitly. Callers that genuinely want an
+            # untrained architecture (e.g. shape-only tests) opt in explicitly.
+            if not allow_random_init:
+                raise RuntimeError(
+                    f"Could not load pretrained weights '{self.pretrained}' for model "
+                    f"'{self.model_name}': {e}. Refusing to fall back to randomly "
+                    f"initialized weights, which would silently return meaningless "
+                    f"embeddings. Pass allow_random_init=True only if untrained "
+                    f"weights are genuinely intended."
+                ) from e
+
+            logger.warning(
+                "Could not load pretrained weights '%s' (%s). "
+                "Falling back to architecture '%s' with UNINITIALIZED (random) weights "
+                "because allow_random_init=True. Embeddings will NOT be meaningful.",
+                self.pretrained,
+                e,
+                self.model_name,
+            )
+            self.model, _, self.preprocess = open_clip.create_model_and_transforms(
+                self.model_name,
+                pretrained="",
+                device=self.device,
+            )
+            self.weights_are_random = True
         self.tokenizer = open_clip.get_tokenizer(self.model_name)
         self.model.eval()
 
@@ -169,9 +186,11 @@ class CLIPEncoder:
 
         all_embeddings = []
         all_valid_paths = []
+        failed_records: List[str] = []
 
         with torch.inference_mode():
-            for batch_tensors, paths in loader:
+            for batch_tensors, paths, batch_failed in loader:
+                failed_records.extend(batch_failed)
                 if len(paths) == 0:
                     continue
                 batch_tensors = batch_tensors.to(self.device, non_blocking=True)
@@ -190,7 +209,14 @@ class CLIPEncoder:
         else:
             final_embeddings = np.empty((0, self.embedding_dim), dtype=np.float32)
 
-        return final_embeddings, all_valid_paths, []
+        if failed_records:
+            logger.warning(
+                "Failed to decode %d of %d images; they are excluded from the embeddings.",
+                len(failed_records),
+                len(paths_str),
+            )
+
+        return final_embeddings, all_valid_paths, failed_records
 
     def encode_text(self, text: str) -> np.ndarray:
         """Encode a text query string into a normalized 1D embedding vector."""

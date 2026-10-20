@@ -3,6 +3,39 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Inline SVG icons — vector assets keep theming and scaling consistent
+  const ICONS = {
+    pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.2 7-10.5A7 7 0 0 0 5 10.5C5 15.8 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.5"/></svg>`,
+    star: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 3.6 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/></svg>`,
+  };
+
+  // Theme (light/dark) — persisted, falls back to the OS preference
+  const root = document.documentElement;
+  const themeToggle = document.getElementById("themeToggle");
+
+  function applyTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    if (themeToggle) {
+      const isDark = theme === "dark";
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+      themeToggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+    }
+  }
+
+  applyTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+      try {
+        localStorage.setItem("ll-theme", next);
+      } catch (e) {
+        /* storage unavailable — theme still applies for this session */
+      }
+    });
+  }
+
   // Elements
   const tabImageBtn = document.getElementById("tabImageBtn");
   const tabTextBtn = document.getElementById("tabTextBtn");
@@ -60,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // AI Location Intelligence & Verification Elements
   const locationIntelCard = document.getElementById("locationIntelCard");
-  const locGeoTag = document.getElementById("locGeoTag");
+  const locGeoText = document.getElementById("locGeoText");
   const locProminentName = document.getElementById("locProminentName");
   const locSpecificWrap = document.getElementById("locSpecificWrap");
   const locSpecificName = document.getElementById("locSpecificName");
@@ -86,7 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
           pillVectors.textContent = `${data.total_vectors.toLocaleString()} Vectors`;
         }
         if (data.device) {
-          pillDevice.innerHTML = `Device: <strong>${data.device.toUpperCase()}</strong>`;
+          pillDevice.textContent = "";
+          pillDevice.append("Device: ");
+          const strong = document.createElement("strong");
+          strong.textContent = String(data.device).toUpperCase();
+          pillDevice.appendChild(strong);
         }
         if (data.available_indices && indexTypeSelect) {
           const ivfCount = data.ivf_vectors ? ` (${(data.ivf_vectors / 1e6).toFixed(2)}M)` : "";
@@ -169,11 +206,15 @@ document.addEventListener("DOMContentLoaded", () => {
       tabTextBtn.classList.remove("active");
       imageTab.classList.add("active");
       textTab.classList.remove("active");
+      tabImageBtn.setAttribute("aria-selected", "true");
+      tabTextBtn.setAttribute("aria-selected", "false");
     } else {
       tabTextBtn.classList.add("active");
       tabImageBtn.classList.remove("active");
       textTab.classList.add("active");
       imageTab.classList.remove("active");
+      tabTextBtn.setAttribute("aria-selected", "true");
+      tabImageBtn.setAttribute("aria-selected", "false");
       textQueryInput.focus();
     }
   }
@@ -319,12 +360,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const metricFusionWrap = document.getElementById("metricFusionWrap");
   const metricFusionTime = document.getElementById("metricFusionTime");
 
+  // Only the newest search may render. Older in-flight requests are aborted,
+  // and any late response is dropped by the sequence guard.
+  let inFlightController = null;
+  let requestSeq = 0;
+
+  async function parseErrorResponse(response) {
+    const fallback = `Search failed (HTTP ${response.status})`;
+    try {
+      const err = await response.json();
+      const detail = err && err.detail;
+      if (typeof detail === "string" && detail) return detail;
+      // FastAPI validation errors return detail as an array of objects.
+      if (Array.isArray(detail)) {
+        const msg = detail.map((d) => (d && d.msg) || "").filter(Boolean).join("; ");
+        if (msg) return msg;
+      }
+      return fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   async function triggerSearch() {
     const topK = parseInt(topKSelect.value, 10);
     const indexType = indexTypeSelect ? indexTypeSelect.value : "ivfpq";
     const tuningVal = parseInt(tuningParamSelect ? tuningParamSelect.value : 64, 10);
-    const nprobe = indexType === "ivfpq" ? tuningVal : 64;
-    const efSearch = indexType === "hnswpq" ? tuningVal : 64;
+    const isEnsemble = indexType === "ensemble";
+    const nprobe = (indexType === "ivfpq" || isEnsemble) ? tuningVal : 64;
+    const efSearch = (indexType === "hnswpq" || isEnsemble) ? tuningVal : 64;
 
     if (activeTab === "image") {
       if (!selectedFile) {
@@ -343,11 +407,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function executeTextSearch(text, topK, nprobe, indexType, efSearch) {
+    if (inFlightController) inFlightController.abort();
+    const controller = (inFlightController = new AbortController());
+    const seq = ++requestSeq;
     setLoading(true);
     try {
       const response = await fetch("/api/search/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           query: text,
           top_k: topK,
@@ -359,20 +427,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Search request failed");
+        throw new Error(await parseErrorResponse(response));
       }
 
       const data = await response.json();
+      if (seq !== requestSeq) return;
       renderResults(data);
     } catch (e) {
+      if (e && e.name === "AbortError") return;
+      if (seq !== requestSeq) return;
+      resultsSection.style.display = "none";
       showError(e.message || "Failed to execute text search.");
     } finally {
-      setLoading(false);
+      if (seq === requestSeq) {
+        inFlightController = null;
+        setLoading(false);
+      }
     }
   }
 
   async function executeImageSearch(file, topK, nprobe, indexType, efSearch) {
+    if (inFlightController) inFlightController.abort();
+    const controller = (inFlightController = new AbortController());
+    const seq = ++requestSeq;
     setLoading(true);
     try {
       const formData = new FormData();
@@ -386,19 +463,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/api/search/image", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Search request failed");
+        throw new Error(await parseErrorResponse(response));
       }
 
       const data = await response.json();
+      if (seq !== requestSeq) return;
       renderResults(data);
     } catch (e) {
+      if (e && e.name === "AbortError") return;
+      if (seq !== requestSeq) return;
+      resultsSection.style.display = "none";
       showError(e.message || "Failed to execute image search.");
     } finally {
-      setLoading(false);
+      if (seq === requestSeq) {
+        inFlightController = null;
+        setLoading(false);
+      }
     }
   }
 
@@ -438,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
       locProminentName.textContent = loc.prominent_attraction || "Identified Landmark";
 
       const geoParts = [loc.city, loc.country].filter(p => p && p !== "nan");
-      locGeoTag.textContent = geoParts.length > 0 ? `📍 ${geoParts.join(", ")}` : "📍 World Landmark";
+      locGeoText.textContent = geoParts.length > 0 ? geoParts.join(", ") : "World Landmark";
 
       if (loc.specific_subject && loc.specific_subject.toLowerCase() !== (loc.prominent_attraction || "").toLowerCase()) {
         locSpecificWrap.style.display = "flex";
@@ -465,28 +549,54 @@ document.addEventListener("DOMContentLoaded", () => {
         mapQuery = encodeURIComponent(`${loc.prominent_attraction} ${loc.city || ""}`.trim());
       }
 
-      if (gmapsIframe && mapQuery) {
-        gmapsIframe.src = `https://maps.google.com/maps?q=${mapQuery}&t=m&z=15&output=embed&iwloc=near`;
+      if (gmapsIframe) {
+        if (mapQuery) {
+          gmapsIframe.src = `https://maps.google.com/maps?q=${mapQuery}&t=m&z=15&output=embed&iwloc=near`;
+          gmapsIframe.style.display = "";
+        } else {
+          // Clear the previous query's pin instead of leaving a stale map.
+          gmapsIframe.removeAttribute("src");
+          gmapsIframe.style.display = "none";
+        }
       }
 
       // Canonical Reference Gallery (Horizontally Scrollable Card)
       refGalleryGrid.innerHTML = "";
       const refs = data.reference_images || [];
       if (refs.length === 0) {
-        refGalleryGrid.innerHTML = `<span style="font-size:0.8rem; color:#94a3b8; padding: 1rem 0;">No canonical photos found.</span>`;
+        refGalleryGrid.innerHTML = `<span class="gallery-empty">No canonical photos found.</span>`;
       } else {
         refs.forEach((ref) => {
           const refCard = document.createElement("div");
           refCard.className = "ref-card";
-          refCard.innerHTML = `
-            <div class="ref-img-wrap">
-              <img src="${ref.thumb_url || ref.original_url}" alt="${escapeHtml(ref.title)}" loading="lazy" />
-              <span class="ref-badge canonical">Canonical Photo</span>
-            </div>
-            <div class="ref-info">
-              <span class="ref-title" title="${escapeHtml(ref.title)}">${escapeHtml(ref.title)}</span>
-            </div>
-          `;
+
+          const imgWrap = document.createElement("div");
+          imgWrap.className = "ref-img-wrap";
+
+          const refUrl = safeHttpUrl(ref.thumb_url || ref.original_url);
+          if (refUrl) {
+            const img = document.createElement("img");
+            img.src = refUrl;
+            img.alt = ref.title ? String(ref.title) : "";
+            img.loading = "lazy";
+            imgWrap.appendChild(img);
+          }
+
+          const badge = document.createElement("span");
+          badge.className = "ref-badge canonical";
+          badge.textContent = "Canonical Photo";
+          imgWrap.appendChild(badge);
+
+          const info = document.createElement("div");
+          info.className = "ref-info";
+          const title = document.createElement("span");
+          title.className = "ref-title";
+          title.textContent = ref.title ? String(ref.title) : "";
+          title.title = title.textContent;
+          info.appendChild(title);
+
+          refCard.appendChild(imgWrap);
+          refCard.appendChild(info);
           refGalleryGrid.appendChild(refCard);
         });
       }
@@ -512,10 +622,12 @@ document.addEventListener("DOMContentLoaded", () => {
         candHierarchyWrap.style.display = "none";
       }
 
-      if (v.category_url) {
-        candWikiBtn.href = v.category_url;
+      const wikiUrl = safeHttpUrl(v.category_url);
+      if (wikiUrl) {
+        candWikiBtn.href = wikiUrl;
         candWikiBtn.style.display = "inline-flex";
       } else {
+        candWikiBtn.removeAttribute("href");
         candWikiBtn.style.display = "none";
       }
     } else {
@@ -525,7 +637,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Nearest Neighbor Cards Grid
     matchesGrid.innerHTML = "";
     const matches = data.matches || [];
-    matchesCount.textContent = `${matches.length} matches retrieved (top_k=${data.top_k}, nprobe=${data.nprobe})`;
+    matchesCount.textContent = matches.length === 0
+      ? "No matches found for this query."
+      : `${matches.length} matches retrieved (top_k=${data.top_k}, nprobe=${data.nprobe})`;
+
+    if (matches.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "gallery-empty";
+      empty.textContent = "Nothing in the index looked close enough. Try a different photo or description.";
+      matchesGrid.appendChild(empty);
+    }
 
     matches.forEach((m) => {
       const card = document.createElement("div");
@@ -538,23 +659,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const isVicinityVerified = Boolean(m.is_vicinity_verified);
       const isConsensus = Boolean(m.consensus);
 
-      // Build thumbnail URL from image_id and split
-      const imgId = m.image_id || "";
-      const imgSplit = m.split || "train";
-      const thumbUrl = (imgId.length >= 3) ? `/api/image/${imgSplit}/${imgId[0]}/${imgId[1]}/${imgId[2]}/${imgId}.jpg` : "";
+      // Build thumbnail URL from image_id and split. Both come from the
+      // mapping parquet, so each path segment must be encoded before use.
+      const imgId = String(m.image_id || "");
+      const imgSplit = String(m.split || "train");
+      const thumbUrl = (imgId.length >= 3)
+        ? `/api/image/${encodeURIComponent(imgSplit)}/${encodeURIComponent(imgId[0])}/${encodeURIComponent(imgId[1])}/${encodeURIComponent(imgId[2])}/${encodeURIComponent(imgId)}.jpg`
+        : "";
+      const matchWikiUrl = safeHttpUrl(m.category_url);
 
       card.innerHTML = `
         <div class="match-card-inner">
           ${thumbUrl ? `<div class="match-thumb-wrap">
-            <img class="match-thumb" src="${thumbUrl}" alt="${escapeHtml(m.landmark_name)}" loading="lazy"
-                 onerror="this.parentElement.style.display='none'" />
+            <img class="match-thumb" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(m.landmark_name)}" loading="lazy" />
           </div>` : ""}
           <div class="match-content">
             <div class="match-top">
-              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
-                ${isVicinityVerified ? `<span class="vicinity-badge">📍 Coordinate-supported</span>` : ""}
-                ${isConsensus ? `<span class="consensus-badge">⭐ CONSENSUS</span>` : ""}
+              <div class="match-flags">
+                <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${escapeHtml(m.rank)}</span>
+                ${isVicinityVerified ? `<span class="vicinity-badge">${ICONS.pin} Coordinate-supported</span>` : ""}
+                ${isConsensus ? `<span class="consensus-badge">${ICONS.star} Consensus</span>` : ""}
               </div>
               <span class="score-display">Evidence score ${scoreVal.toFixed(4)}</span>
             </div>
@@ -563,38 +687,62 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="match-name">${escapeHtml(m.landmark_name)}</div>
             <div class="match-details">
-              <span>Landmark ID: <strong>${m.landmark_id}</strong></span>
-              <span>Image ID: <strong>${m.image_id}</strong></span>
-              <span>Dataset Split: <strong>${m.split}</strong></span>
+              <span>Landmark ID: <strong>${escapeHtml(m.landmark_id)}</strong></span>
+              <span>Image ID: <strong>${escapeHtml(m.image_id)}</strong></span>
+              <span>Dataset Split: <strong>${escapeHtml(m.split)}</strong></span>
               ${m.vicinity_cluster ? `<span>Vicinity: <strong>${escapeHtml(m.vicinity_cluster)}</strong></span>` : ""}
-              ${m.distance_km !== null && m.distance_km !== undefined ? `<span>Distance: <strong>${m.distance_km} km away</strong></span>` : ""}
+              ${m.distance_km !== null && m.distance_km !== undefined ? `<span>Distance: <strong>${escapeHtml(m.distance_km)} km away</strong></span>` : ""}
               ${m.visual_sim !== undefined ? `<span>Breakdown: <strong>Vis ${Math.round(m.visual_sim * 100)}% | Vic ${Math.round(m.vicinity_score * 100)}% | Geo ${Math.round(m.spatial_score * 100)}%</strong></span>` : ""}
-              ${m.sources && m.sources.length > 0 ? `<span>Retrieved By: <strong>${m.sources.join(' + ').toUpperCase()}</strong></span>` : ""}
+              ${m.sources && m.sources.length > 0 ? `<span>Retrieved By: <strong>${escapeHtml(m.sources.join(' + ').toUpperCase())}</strong></span>` : ""}
               ${m.hierarchical_label && m.hierarchical_label !== "nan" ? `<span>Category: <em>${escapeHtml(m.hierarchical_label)}</em></span>` : ""}
             </div>
 
             ${
-              m.category_url
+              matchWikiUrl
                 ? `<div class="match-footer">
-                     <a href="${m.category_url}" target="_blank" rel="noopener noreferrer" class="match-link">Wikimedia Category ↗</a>
+                     <a href="${escapeHtml(matchWikiUrl)}" target="_blank" rel="noopener noreferrer" class="match-link">Wikimedia Category ↗</a>
                    </div>`
                 : ""
             }
           </div>
         </div>
       `;
+
+      const thumbEl = card.querySelector(".match-thumb");
+      if (thumbEl) {
+        thumbEl.addEventListener("error", () => {
+          const wrap = thumbEl.parentElement;
+          if (wrap) wrap.style.display = "none";
+        });
+      }
+
       matchesGrid.appendChild(card);
     });
 
   }
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return str
+  function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+
+  // Data from the GLDv2 parquet and the Wikimedia API is untrusted. Only
+  // absolute http(s) URLs may ever reach an href/src, so that a poisoned
+  // record cannot smuggle in a javascript: or data: URL.
+  function safeHttpUrl(value) {
+    if (!value) return "";
+    const raw = String(value).trim();
+    try {
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+      return parsed.href;
+    } catch (_) {
+      return "";
+    }
   }
 });

@@ -1,6 +1,7 @@
 """Backend Search Engine Service for FastAPI."""
 
 import io
+import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -24,6 +25,10 @@ from src.reranking.hybrid_fusion import HybridMultiSignalReranker
 
 logger = get_logger("search_service")
 
+# Upper bound on decoded image area (~89 MP, well above any real photo).
+MAX_IMAGE_PIXELS = 89_478_485
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+
 
 class SearchEngineService:
     """Manages model, index, and metadata for fast concurrent visual landmark retrieval."""
@@ -36,7 +41,12 @@ class SearchEngineService:
         self.index: Optional[IVFPQIndex] = None
         self.df_mapping: Optional[pd.DataFrame] = None
         self.lookup: Optional[LandmarkLookupTable] = None
+        self.reranker: Optional[TwoStageReranker] = None
         self.is_ready = False
+        # FAISS index objects carry mutable C++ search state (nprobe/efSearch)
+        # and are not thread-safe. FastAPI runs these sync handlers in a
+        # threadpool, so parameter-set plus search must be one critical section.
+        self._index_lock = threading.Lock()
 
     def initialize(self):
         """Load OpenCLIP, FAISS indices, and lookup tables into memory once."""
@@ -89,7 +99,22 @@ class SearchEngineService:
         self.reference_fetcher = ReferenceImageFetcher()
         self.fusion_reranker = HybridMultiSignalReranker()
 
-        self.is_ready = True
+        # Built once: its constructor indexes the full mapping table and it
+        # owns an mmap cache, both of which are wasted if rebuilt per request.
+        if self.df_mapping is not None:
+            self.reranker = TwoStageReranker(self.cfg.embedding_dir, self.df_mapping)
+
+        # Only report ready if we can actually serve a search. Otherwise the
+        # readiness gate passes and every query fails with a 500 instead of 503.
+        self.is_ready = self.index_ivf is not None or self.index_hnsw is not None
+        if not self.is_ready:
+            logger.error(
+                "Search Engine Service initialized WITHOUT a usable index; "
+                "searches will be rejected with 503 until an index exists in %s",
+                self.cfg.index_dir,
+            )
+            return
+
         logger.info(
             "Search Engine Service successfully initialized! Total IVF vectors: %d | Total HNSW vectors: %d",
             self.index_ivf.total_vectors if self.index_ivf else 0,
@@ -111,9 +136,12 @@ class SearchEngineService:
             new_hnsw = HNSWPQIndex()
             new_hnsw.load(hnsw_path)
             new_hnsw.set_ef_search(128)
-            self.index_hnsw = new_hnsw
-            self._hnsw_mtime = curr_mtime
-            logger.info("Successfully loaded HNSW-PQ index with %d vectors (M=64, efSearch=128)", self.index_hnsw.total_vectors)
+            # Swap under the same lock that guards searching, so no in-flight
+            # query is left holding a half-replaced index.
+            with self._index_lock:
+                self.index_hnsw = new_hnsw
+                self._hnsw_mtime = curr_mtime
+            logger.info("Successfully loaded HNSW-PQ index with %d vectors (M=64, efSearch=128)", new_hnsw.total_vectors)
             return True
         except Exception as e:
             logger.warning("Failed to load HNSW-PQ index from %s: %s", hnsw_path, e)
@@ -157,7 +185,6 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = True,
-        alpha_qe: bool = False,
         query_image_path: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """Core search and aggregation routine given a 512-dim normalized embedding."""
@@ -174,12 +201,13 @@ class SearchEngineService:
             self._ensure_hnsw_loaded()
             if self.index_ivf is None or self.index_hnsw is None:
                 raise RuntimeError("Ensemble search requires both IVF-PQ and HNSW-PQ indices to be available.")
-            self.index_ivf.set_nprobe(nprobe or 64)
-            self.index_hnsw.set_ef_search(ef_search or 64)
 
             t_search_start = time.perf_counter()
-            sc_ivf, ids_ivf = self.index_ivf.search(query_emb.reshape(1, -1), top_k=search_k)
-            sc_hnsw, ids_hnsw = self.index_hnsw.search(query_emb.reshape(1, -1), top_k=search_k)
+            with self._index_lock:
+                self.index_ivf.set_nprobe(nprobe or 64)
+                self.index_hnsw.set_ef_search(ef_search or 64)
+                sc_ivf, ids_ivf = self.index_ivf.search(query_emb.reshape(1, -1), top_k=search_k)
+                sc_hnsw, ids_hnsw = self.index_hnsw.search(query_emb.reshape(1, -1), top_k=search_k)
             from src.index.fusion import reciprocal_rank_fusion
             scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
                 [("ivfpq", sc_ivf[0], ids_ivf[0]), ("hnswpq", sc_hnsw[0], ids_hnsw[0])],
@@ -193,10 +221,11 @@ class SearchEngineService:
             if self.index_hnsw is None:
                 raise RuntimeError("HNSW-PQ index is not available. Please train it first or select IVF-PQ.")
             active_index = self.index_hnsw
-            active_index.set_ef_search(ef_search or 64)
 
             t_search_start = time.perf_counter()
-            scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+            with self._index_lock:
+                active_index.set_ef_search(ef_search or 64)
+                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
             t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
             scores = scores[0]
             faiss_ids = faiss_ids[0]
@@ -204,43 +233,18 @@ class SearchEngineService:
             if self.index_ivf is None:
                 raise RuntimeError("IVF-PQ index is not initialized.")
             active_index = self.index_ivf
-            active_index.set_nprobe(nprobe or 64)
 
             t_search_start = time.perf_counter()
-            scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+            with self._index_lock:
+                active_index.set_nprobe(nprobe or 64)
+                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
             t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
             scores = scores[0]
             faiss_ids = faiss_ids[0]
 
-        # Optional Alpha-Query Expansion (α-QE)
-        t_qe_ms = 0.0
-        if alpha_qe and HAS_ALPHA_QE:
-            t_qe_start = time.perf_counter()
-            expander = AlphaQueryExpander(alpha=3.0, num_candidates=5)
-            expanded_emb = expander.expand_query(
-                query_emb=query_emb,
-                candidate_ids=list(faiss_ids),
-                candidate_scores=list(scores),
-                index=active_index,
-            )
-            if is_ensemble:
-                sc_ivf_qe, ids_ivf_qe = self.index_ivf.search(expanded_emb.reshape(1, -1), top_k=search_k)
-                sc_hnsw_qe, ids_hnsw_qe = self.index_hnsw.search(expanded_emb.reshape(1, -1), top_k=search_k)
-                from src.index.fusion import reciprocal_rank_fusion
-                scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
-                    [("ivfpq", sc_ivf_qe[0], ids_ivf_qe[0]), ("hnswpq", sc_hnsw_qe[0], ids_hnsw_qe[0])],
-                    k=60,
-                    top_k=search_k,
-                )
-            else:
-                scores_qe, faiss_ids_qe = active_index.search(expanded_emb.reshape(1, -1), top_k=search_k)
-                scores = scores_qe[0]
-                faiss_ids = faiss_ids_qe[0]
-            t_qe_ms = (time.perf_counter() - t_qe_start) * 1000.0
-
         # Optional Two-stage exact rerank
-        if rerank and self.df_mapping is not None:
-            reranker = TwoStageReranker(self.cfg.embedding_dir, self.df_mapping)
+        if rerank and self.reranker is not None:
+            reranker = self.reranker
             valid_ids = [fid for fid in faiss_ids if fid >= 0]
             reranked = reranker.rerank_candidates(query_emb, valid_ids, top_k=search_k)
             faiss_ids = np.array([r["faiss_id"] for r in reranked], dtype=np.int64)
@@ -364,7 +368,6 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = True,
-        alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode natural language text query and retrieve matching landmarks."""
         if not self.encoder:
@@ -382,12 +385,11 @@ class SearchEngineService:
             index_type=index_type,
             ef_search=ef_search,
             rerank=rerank,
-            alpha_qe=alpha_qe,
         )
         res["query_type"] = "text"
         res["query_input"] = query_text
         res["embedding_latency_ms"] = round(t_emb_ms, 2)
-        total_lat = t_emb_ms + res["search_latency_ms"] + res.get("alpha_qe_ms", 0.0)
+        total_lat = t_emb_ms + res["search_latency_ms"] + res.get("fusion_latency_ms", 0.0)
         res["total_latency_ms"] = round(total_lat, 2)
         return res
 
@@ -400,16 +402,29 @@ class SearchEngineService:
         index_type: str = "ivfpq",
         ef_search: int = 64,
         rerank: bool = True,
-        alpha_qe: bool = False,
     ) -> Dict[str, Any]:
         """Encode raw image bytes into OpenCLIP representation and retrieve matching landmarks."""
         if not self.encoder:
             raise RuntimeError("Encoder not initialized.")
 
         t_emb_start = time.perf_counter()
-        with Image.open(io.BytesIO(image_bytes)) as pil_img:
-            rgb_img = pil_img.convert("RGB")
-            query_emb = self.encoder.encode_pil_images([rgb_img])[0]
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as pil_img:
+                # Guard against decompression bombs: a few-KB file can declare
+                # a multi-gigapixel canvas that OOMs the process on convert().
+                width, height = pil_img.size
+                if width * height > MAX_IMAGE_PIXELS:
+                    raise ValueError(
+                        f"Image resolution {width}x{height} exceeds the supported limit."
+                    )
+                rgb_img = pil_img.convert("RGB")
+                query_emb = self.encoder.encode_pil_images([rgb_img])[0]
+        except Image.DecompressionBombError as e:
+            raise ValueError("Image resolution exceeds the supported limit.") from e
+        except (Image.UnidentifiedImageError, OSError) as e:
+            # Declared content-type is client-controlled; this is where the
+            # bytes are actually proven to be a decodable image.
+            raise ValueError("Uploaded file is not a readable image.") from e
         t_emb_ms = (time.perf_counter() - t_emb_start) * 1000.0
 
         res = self._execute_search(
@@ -420,7 +435,6 @@ class SearchEngineService:
             index_type=index_type,
             ef_search=ef_search,
             rerank=rerank,
-            alpha_qe=alpha_qe,
         )
 
         res["query_type"] = "image"

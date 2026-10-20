@@ -2,7 +2,10 @@
 
 import sys
 import os
+import re
+import uuid
 from contextlib import asynccontextmanager
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -45,13 +48,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Enable CORS for developer flexibility
+# CORS. No cookie or Authorization-based auth exists in this service, so
+# credentials stay off; a wildcard origin with credentials is both invalid per
+# the Fetch spec and would let any site drive this API.
+_allowed_origins = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",") if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "HEAD"],
+    allow_headers=["Content-Type"],
 )
 
 # Mount rendered keypoint match visualizations directly
@@ -64,18 +72,33 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# Dataset image directory for serving thumbnails
-IMAGE_DIR = Path(os.getenv("IMAGE_DIR", str(PROJECT_ROOT / "data" / "raw" / "images")))
+# Dataset image directory for serving thumbnails. Resolved through the shared
+# config so the API and the service always agree on the same tree.
+IMAGE_DIR = search_service.cfg.image_dir.resolve()
+
+# Only these characters may appear in a dataset path segment, which makes
+# directory traversal ("..", absolute paths, separators) structurally impossible.
+_SAFE_SEGMENT = re.compile(r"^[A-Za-z0-9_-]+$")
+
+# Hard cap on uploads; without it a single large POST can OOM the process.
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
+
+
+class IndexType(str, Enum):
+    """Supported vector index backends."""
+
+    ivfpq = "ivfpq"
+    hnswpq = "hnswpq"
+    ensemble = "ensemble"
 
 
 class TextSearchRequest(BaseModel):
-    query: str = Field(..., min_length=1, description="Natural language prompt describing the landmark")
+    query: str = Field(..., min_length=1, max_length=500, description="Natural language prompt describing the landmark")
     top_k: int = Field(10, ge=1, le=100, description="Number of results to retrieve")
     nprobe: int = Field(64, ge=1, le=256, description="Number of IVF Voronoi clusters to probe")
-    index_type: str = Field("ivfpq", description="Vector index algorithm: 'ivfpq', 'hnswpq', or 'ensemble'")
+    index_type: IndexType = Field(IndexType.ivfpq, description="Vector index algorithm")
     ef_search: int = Field(64, ge=1, le=512, description="Exploration depth for HNSW graph search")
     rerank: bool = Field(True, description="Whether to apply two-stage exact re-ranking")
-    alpha_qe: bool = Field(False, description="Whether to apply α-Query Expansion")
 
 
 @app.get("/")
@@ -102,7 +125,19 @@ def get_system_info():
 @app.head("/api/image/{split}/{a}/{b}/{c}/{image_id}.jpg")
 def serve_dataset_image(split: str, a: str, b: str, c: str, image_id: str):
     """Serve a dataset image from the local GLDv2 image directory for thumbnail display."""
-    img_path = IMAGE_DIR / split / a / b / c / f"{image_id}.jpg"
+    segments = (split, a, b, c, image_id)
+    if not all(_SAFE_SEGMENT.match(seg) for seg in segments):
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    img_path = (IMAGE_DIR / split / a / b / c / f"{image_id}.jpg").resolve()
+
+    # Defence in depth: even with the character allow-list above, confirm the
+    # resolved path (after symlink resolution) is still inside IMAGE_DIR.
+    try:
+        img_path.relative_to(IMAGE_DIR)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Image not found")
+
     if not img_path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(img_path, media_type="image/jpeg")
@@ -119,32 +154,34 @@ def search_by_text(req: TextSearchRequest):
             query_text=req.query,
             top_k=req.top_k,
             nprobe=req.nprobe,
-            index_type=req.index_type,
+            index_type=req.index_type.value,
             ef_search=req.ef_search,
             rerank=req.rerank,
-            alpha_qe=req.alpha_qe,
         )
         return results
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception("Text search error: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        ref = uuid.uuid4().hex[:8]
+        logger.exception("Text search error [ref=%s]: %s", ref, e)
+        raise HTTPException(status_code=500, detail=f"Internal search error (ref {ref})")
 
 
 @app.post("/api/search/image")
 def search_by_image(
     file: UploadFile = File(...),
-    top_k: int = Form(10),
-    nprobe: int = Form(64),
-    index_type: str = Form("ivfpq"),
-    ef_search: int = Form(64),
+    top_k: int = Form(10, ge=1, le=100),
+    nprobe: int = Form(64, ge=1, le=256),
+    index_type: IndexType = Form(IndexType.ivfpq),
+    ef_search: int = Form(64, ge=1, le=512),
     rerank: bool = Form(True),
-    alpha_qe: bool = Form(False),
 ):
     """Upload a query photo to retrieve nearest landmark matches."""
     if not search_service.is_ready:
         raise HTTPException(status_code=503, detail="Search service is still warming up.")
 
-    # Validate image mime type
+    # Validate declared mime type. This is client-controlled, so the real
+    # format is verified when PIL decodes the bytes further down.
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=400,
@@ -152,7 +189,14 @@ def search_by_image(
         )
 
     try:
-        image_bytes = file.file.read()
+        # Read one byte past the limit so an oversized upload is detected
+        # without ever buffering the whole body.
+        image_bytes = file.file.read(MAX_UPLOAD_BYTES + 1)
+        if len(image_bytes) > MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Image exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.",
+            )
         if len(image_bytes) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
@@ -161,13 +205,22 @@ def search_by_image(
             filename=file.filename or "upload.jpg",
             top_k=top_k,
             nprobe=nprobe,
-            index_type=index_type,
+            index_type=index_type.value,
             ef_search=ef_search,
             rerank=rerank,
-            alpha_qe=alpha_qe,
         )
         return results
 
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.exception("Image search error: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        ref = uuid.uuid4().hex[:8]
+        logger.exception("Image search error [ref=%s]: %s", ref, e)
+        raise HTTPException(status_code=500, detail=f"Internal search error (ref {ref})")
+    finally:
+        try:
+            file.file.close()
+        except Exception:
+            pass

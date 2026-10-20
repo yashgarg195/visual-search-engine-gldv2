@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from src.index.base import BaseVectorIndex
+from src.index.threading_utils import faiss_threads
 from src.utils.io import atomic_save_json, load_json
 from src.utils.logging import get_logger
 
@@ -159,6 +160,14 @@ class HNSWPQIndex(BaseVectorIndex):
         if query_vectors.ndim == 1:
             query_vectors = query_vectors.reshape(1, -1)
 
+        # Clamp to the number of stored vectors. FAISS pads a short result set
+        # with id=-1 and, for inner-product metrics, score=-FLT_MAX; those
+        # sentinel values poison any downstream score normalisation.
+        ntotal = self.total_vectors
+        if ntotal <= 0:
+            raise RuntimeError("Cannot search an empty HNSW-PQ index.")
+        top_k = max(1, min(int(top_k), int(ntotal)))
+
         # Ensure current ef_search is applied
         if hasattr(self._index, "index"):
             sub = faiss.downcast_index(self._index.index)
@@ -166,14 +175,8 @@ class HNSWPQIndex(BaseVectorIndex):
             if hasattr(sub, "hnsw"):
                 sub.hnsw.efSearch = self.ef_search
 
-        old_threads = faiss.omp_get_max_threads() if hasattr(faiss, "omp_get_max_threads") else 1
-        try:
-            if hasattr(faiss, "omp_set_num_threads"):
-                faiss.omp_set_num_threads(1)
+        with faiss_threads(1):
             scores, ids = self._index.search(query_vectors, top_k)
-        finally:
-            if hasattr(faiss, "omp_set_num_threads"):
-                faiss.omp_set_num_threads(old_threads)
 
         return scores, ids
 
@@ -191,7 +194,11 @@ class HNSWPQIndex(BaseVectorIndex):
         index_path.parent.mkdir(parents=True, exist_ok=True)
 
         logger.info("Writing HNSW-PQ index to %s...", index_path)
-        faiss.write_index(self._index, str(index_path))
+        # Write to a sibling temp file and atomically rename, so an interrupted
+        # multi-GB write cannot leave a corrupt index in place of a good one.
+        tmp_index_path = index_path.with_name(index_path.name + ".tmp")
+        faiss.write_index(self._index, str(tmp_index_path))
+        os.replace(tmp_index_path, index_path)
 
         # Write companion metadata
         meta = {

@@ -5,10 +5,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+# Anchor for relative paths so configuration does not depend on the
+# directory the process happens to be launched from.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 def load_env_file(dotenv_path: Optional[str] = None) -> None:
     """Lightweight loader for .env files without requiring python-dotenv."""
-    path = Path(dotenv_path) if dotenv_path else Path(".env")
+    path = Path(dotenv_path) if dotenv_path else (PROJECT_ROOT / ".env")
     if not path.is_file():
         return
     with open(path, "r", encoding="utf-8") as f:
@@ -64,14 +68,19 @@ class PipelineConfig:
     random_seed: int = field(default_factory=lambda: int(os.getenv("RANDOM_SEED", "42")))
 
     def __post_init__(self):
-        # Convert all paths to Path objects if passed as strings
-        self.data_root = Path(self.data_root)
-        self.image_dir = Path(self.image_dir)
-        self.metadata_dir = Path(self.metadata_dir)
-        self.processed_dir = Path(self.processed_dir)
-        self.embedding_dir = Path(self.embedding_dir)
-        self.index_dir = Path(self.index_dir)
-        self.eval_dir = Path(self.eval_dir)
+        # Convert all paths to Path objects, resolving any relative path
+        # against PROJECT_ROOT rather than the current working directory.
+        def _anchor(value) -> Path:
+            p = Path(value).expanduser()
+            return p if p.is_absolute() else (PROJECT_ROOT / p).resolve()
+
+        self.data_root = _anchor(self.data_root)
+        self.image_dir = _anchor(self.image_dir)
+        self.metadata_dir = _anchor(self.metadata_dir)
+        self.processed_dir = _anchor(self.processed_dir)
+        self.embedding_dir = _anchor(self.embedding_dir)
+        self.index_dir = _anchor(self.index_dir)
+        self.eval_dir = _anchor(self.eval_dir)
 
     def ensure_directories(self) -> None:
         """Create necessary directories if they do not exist."""

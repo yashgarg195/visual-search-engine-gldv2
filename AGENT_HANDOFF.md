@@ -102,7 +102,8 @@ visual-search-engine-gldv2/
 │   │   ├── base.py                       # Abstract base class for FAISS vector indices
 │   │   ├── ivfpq.py                      # IVF-PQ index implementation & serialization
 │   │   ├── hnsw_pq.py                    # HNSW-PQ graph index implementation
-│   │   └── fusion.py                     # Reciprocal Rank Fusion (RRF) implementation
+│   │   ├── fusion.py                     # Reciprocal Rank Fusion (RRF) implementation
+│   │   └── threading_utils.py            # Scoped OpenMP thread control context managers
 │   ├── llm/
 │   │   └── location_resolver.py          # Gemini 3.8 Flash + Nominatim reverse geocoder
 │   ├── reranking/
@@ -142,7 +143,7 @@ visual-search-engine-gldv2/
     ├── test_metadata_resolver.py         # Unit tests for metadata and GLDv2 mapping
     ├── test_geometric_verifier.py        # Unit tests for geometric verification utilities
     ├── test_lightglue_and_alpha_qe.py    # Unit tests for fallback matching & QE logic
-    └── test_end_to_end.py                # End-to-end integration test (34 passed tests)
+    └── test_end_to_end.py                # End-to-end integration test (35 passed tests)
 ```
 
 ---
@@ -177,28 +178,34 @@ visual-search-engine-gldv2/
   - **Standing constraint**: Do not loop against live Gemini API during automated regression tests.
 
 ### D. UI/UX Refinement & Front-End Architecture
-* **CSS Syntax Correction**: Fixed an unclosed `.ref-gallery-sub` declaration in `style.css` that was risking cascading parse failures for gallery rules.
-* **Leaflet Removal & Embedded Google Maps**: Removed legacy Leaflet JS/CSS CDN script tags (~150KB overhead). Google Maps pin is now rendered entirely on-page within an embedded `<iframe>` in `#mapContainer` without external page redirects.
+* **Landmark Lens Redesign**: Modernized UI with Fredoka (display) and Nunito (body) typography, organic biophilic curvature, warm coral/trust blue/cream palette, and persistent light/dark mode with `meta theme-color` synchronization.
+* **Vector Icon System**: Standardized on inline SVG icons (`ICONS.pin`, `ICONS.star`, theme toggle icons) to eliminate layout shifts and ensure uniform color theming across light and dark modes.
+* **Request Race Protection & Cancellation**: Added `AbortController` and request sequence tracking (`requestSeq`) to automatically cancel in-flight queries and prevent stale async responses from clobbering newer search results.
+* **XSS Defense**: Sanitized all user and API-supplied fields with `escapeHtml` and bounded all URLs with `safeHttpUrl` to prevent `javascript:` or `data:` protocol smuggling.
+* **Leaflet Removal & Embedded Google Maps**: Removed legacy Leaflet JS/CSS CDN script tags (~150KB overhead). Google Maps pin is rendered on-page within an embedded `<iframe>` in `#mapContainer` without external page redirects.
 * **Local Dataset Image Serving & Match Card Thumbnails**:
-  - Added dedicated FastAPI endpoint `GET /api/image/{split}/{a}/{b}/{c}/{image_id}.jpg` to directly stream local GLDv2 images.
-  - Added match card image thumbnails in `app.js` and responsive CSS in `style.css` (`.match-card-inner`, `.match-thumb-wrap`, `.match-thumb`), featuring subtle hover-zoom transitions and graceful `onerror` hiding.
-* **Evidence-oriented UI and ranking labels**:
-  - Web-fetched canonical images render in one scrollable `Reference atlas` card, with snap-aligned tiles and explicit left/right controls.
-  - The map is a matching `map-evidence-card` with a 20px outer radius and a clipped 15px map frame.
-  - Displayed result language is intentionally non-probabilistic: `Evidence score`, `Evidence total`, and lead-over-runner-up margin replace misleading confidence labels.
-  - `Coordinate-supported` only appears for candidates within 2 km of the computed spatial centroid; membership in the winning vicinity alone is insufficient.
-* **Parameter and metadata hygiene**:
+  - Dedicated FastAPI endpoint `GET /api/image/{split}/{a}/{b}/{c}/{image_id}.jpg` streams local GLDv2 images.
+  - Path traversal is strictly prevented via `_SAFE_SEGMENT` regex and `img_path.relative_to(IMAGE_DIR)` verification.
+  - Match cards feature lazy-loaded dataset thumbnails with hover-zoom transitions and automatic fallback on missing images.
+* **Parameter & Metadata Hygiene**:
   - Removed deprecated `alpha_qe: false` request payloads from client search calls.
   - Synchronized vector counts across header pill and HNSW dropdown to accurately display `5.05M` / `5,052,992 Vectors`.
   - Cleaned dead DOM selector `gmapsLink`.
-  - Bumped script cache-busting parameter to `app.js?v=2.7`.
+  - Bumped script cache-busting parameter to `app.js?v=3.0`.
 
-### E. Accuracy and Memory-Safe Runtime (Current)
-* **Exact reranking is now the default** for API and browser searches. Approximate IVF/HNSW retrieval expands to `min(100, max(top_k * 5, 50))` candidates, exact-reranks that pool, then fuses and returns the requested `top_k`.
-* **One ranking truth**: similarity-weighted voting consumes `final_score` when present, which matches the score shown in the result cards. The LLM location result is computed after voting and cannot rename or rerank the visual winner.
-* **Lazy HNSW loading**: startup loads IVF-PQ only. HNSW-PQ is loaded when a user selects HNSW or Ensemble search. `GET /api/info` advertises it as available while reporting `hnsw_vectors: 0` until it is resident.
-* **Memory-safe metadata**: the 5M-row FAISS mapping remains a pandas index instead of being duplicated as a Python dictionary. Metadata Parquet files over 100,000 records are registered and queried on demand by landmark ID; this prevents macOS startup termination from eager expansion.
-* **Operational constraint**: selecting HNSW/Ensemble still requires the additional graph-memory budget (~2.8 GB on disk plus FAISS overhead). Use the IVF default when testing the dashboard on a memory-constrained Mac.
+### E. Accuracy, Security, and Memory-Safe Runtime (Current)
+* **Scoped OpenMP Threading**: Implemented [`src/index/threading_utils.py`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/index/threading_utils.py) context managers (`faiss_threads` and `faiss_single_thread_on_macos`) to prevent global thread contention and permanently pinning process OpenMP state.
+* **Security & DoS Protection**:
+  - Upload size is capped at 10 MB (`MAX_UPLOAD_BYTES`); oversized payloads are rejected immediately with `413`.
+  - Image decoding is guarded against decompression bombs (`MAX_IMAGE_PIXELS = 89_478_485`).
+  - 500 error responses no longer leak internal tracebacks to clients; they return a concise error with an 8-character correlation reference ID.
+* **Thread-Safe Reranking & Caching**:
+  - Mutex locks added to `SearchEngineService._index_lock`, `ThumbnailFetcher._lock`, and `LocationResolver._cache_lock`.
+  - Atomic JSON disk persistence via temporary file write and replacement.
+  - Image query caching is keyed on retrieved `lm:{landmark_id}` rather than user-supplied filenames to prevent cache poisoning.
+* **Exact Reranking Default**: Approximate retrieval expands to `min(100, max(top_k * 5, 50))` candidates, runs exact vector reranking across that pool, and passes them to Multi-Signal Fusion.
+* **Lazy HNSW Loading**: Startup loads IVF-PQ only (~3s boot time). HNSW-PQ graph loads on-demand when requested.
+* **Memory-Safe Metadata**: Mapping tables are maintained as indexed pandas DataFrames rather than duplicate Python dictionaries.
 
 ---
 

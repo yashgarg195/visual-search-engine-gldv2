@@ -8,11 +8,9 @@ Resolves ambiguous sub-landmark names (e.g. 'Monument to Minin and Pozharsky',
 import json
 import os
 import re
+import threading
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
-from google import genai
-from google.genai import types
-
 from src.config import load_env_file
 load_env_file()
 
@@ -20,10 +18,30 @@ from src.utils.logging import get_logger
 
 logger = get_logger("location_resolver")
 
+# The Gemini SDK is an optional dependency: the search engine is fully
+# functional without LLM enrichment, so a missing package must not take down
+# the whole API at import time.
+try:
+    from google import genai
+    from google.genai import types
+
+    HAS_GENAI = True
+except ImportError:  # pragma: no cover - depends on local install
+    genai = None
+    types = None
+    HAS_GENAI = False
+    logger.warning(
+        "google-genai is not installed; landmark LLM enrichment will be disabled."
+    )
+
 
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 _RESOLVER_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="gemini_resolver")
+
+# Bound the persistent resolution cache so a long-running server cannot grow it
+# without limit (it is rewritten to disk in full on every miss).
+MAX_CACHE_ENTRIES = 5000
 
 # Curated anchor knowledge for instant disambiguation of ambiguous sub-landmarks
 PROMINENT_ANCHOR_MAP: Dict[str, Dict[str, Any]] = {
@@ -104,9 +122,10 @@ class LocationResolver:
         self.client = None
         self.cache_path = cache_path
         self.cache: Dict[str, Dict[str, Any]] = {}
+        self._cache_lock = threading.Lock()
         self._load_cache()
 
-        if self.api_key:
+        if self.api_key and HAS_GENAI:
             try:
                 self.client = genai.Client(
                     api_key=self.api_key,
@@ -131,10 +150,26 @@ class LocationResolver:
     def _save_cache(self) -> None:
         try:
             os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
-            with open(self.cache_path, "w", encoding="utf-8") as f:
-                json.dump(self.cache, f, indent=2, ensure_ascii=False)
+            # Snapshot under the lock so we never serialize a dict that another
+            # request thread is mutating, then write via a temp file + rename so
+            # a crash mid-write cannot leave truncated JSON behind.
+            with self._cache_lock:
+                snapshot = dict(self.cache)
+            tmp_path = f"{self.cache_path}.{os.getpid()}.tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(snapshot, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, self.cache_path)
         except Exception as e:
             logger.warning("Failed to save landmark cache to %s: %s", self.cache_path, e)
+
+    def _cache_put(self, key: str, value: Dict[str, Any]) -> None:
+        """Store a resolution and bound the cache so it cannot grow forever."""
+        with self._cache_lock:
+            self.cache[key] = value
+            if len(self.cache) > MAX_CACHE_ENTRIES:
+                for stale in list(self.cache)[: len(self.cache) - MAX_CACHE_ENTRIES]:
+                    self.cache.pop(stale, None)
+        self._save_cache()
 
     def is_available(self) -> bool:
         return self.client is not None
@@ -146,9 +181,20 @@ class LocationResolver:
         fallback_coords: Optional[Dict[str, float]] = None,
     ) -> Optional[LocationResolution]:
         """Resolve ambiguous or specific candidates to the prominent landmark anchor."""
-        clean_q = re.sub(r"^(Text:\s*['\"]?|Image:\s*)", "", query_text or "").strip().rstrip("'\"").lower()
+        raw_q = query_text or ""
+        # Image queries arrive as "Image: <filename>". The filename is
+        # attacker/user-controlled and carries no landmark meaning, so keying
+        # the cache on it makes two unrelated photos named "photo.jpg" collide
+        # and return each other's resolved landmark. Key image queries on the
+        # retrieved landmark instead.
+        is_image_query = bool(re.match(r"^\s*Image:\s*", raw_q))
+        clean_q = re.sub(r"^(Text:\s*['\"]?|Image:\s*)", "", raw_q).strip().rstrip("'\"").lower()
         top_name = (candidates[0].get("landmark_name") or candidates[0].get("title") or "") if candidates else ""
-        cache_key = clean_q or top_name.lower().strip()
+        top_id = str(candidates[0].get("landmark_id") or "") if candidates else ""
+        if is_image_query:
+            cache_key = f"lm:{top_id}" if top_id else top_name.lower().strip()
+        else:
+            cache_key = clean_q or top_name.lower().strip()
 
         # Check in-memory / persistent disk cache first
         if cache_key and cache_key in self.cache:
@@ -159,8 +205,7 @@ class LocationResolver:
             logger.info("Gemini API client not configured; using heuristic fallback.")
             res = self._heuristic_fallback(candidates, fallback_coords, query_text=query_text)
             if res and cache_key:
-                self.cache[cache_key] = res.to_dict()
-                self._save_cache()
+                self._cache_put(cache_key, res.to_dict())
             return res
 
         # Extract context from top candidates
@@ -246,22 +291,19 @@ OUTPUT STRICT JSON ONLY MATCHING THIS SCHEMA:
                 search_query=data.get("search_query", data.get("prominent_attraction", "")),
             )
             if cache_key:
-                self.cache[cache_key] = resolution.to_dict()
-                self._save_cache()
+                self._cache_put(cache_key, resolution.to_dict())
             return resolution
         except FutureTimeoutError:
             logger.warning("Gemini location resolver exceeded 2.0s; using instant local fallback.")
             res = self._heuristic_fallback(candidates, fallback_coords, query_text=query_text)
             if res and cache_key:
-                self.cache[cache_key] = res.to_dict()
-                self._save_cache()
+                self._cache_put(cache_key, res.to_dict())
             return res
         except Exception as e:
             logger.warning("Error resolving location with Gemini: %s. Falling back to heuristic.", e)
             res = self._heuristic_fallback(candidates, fallback_coords, query_text=query_text)
             if res and cache_key:
-                self.cache[cache_key] = res.to_dict()
-                self._save_cache()
+                self._cache_put(cache_key, res.to_dict())
             return res
 
     def _heuristic_fallback(

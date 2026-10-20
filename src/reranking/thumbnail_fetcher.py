@@ -10,6 +10,7 @@ Fetches candidate images on-the-fly for Stage-2 verification with:
 
 from collections import OrderedDict
 import io
+import threading
 import urllib.error
 import urllib.request
 from typing import Optional, Union
@@ -30,6 +31,9 @@ class ThumbnailFetcher:
         self.max_cache_size = max_cache_size
         self.timeout = timeout
         self._cache: OrderedDict[str, Image.Image] = OrderedDict()
+        # The class is documented as thread-safe and is reached from FastAPI's
+        # request threadpool, so every cache mutation must be serialized.
+        self._lock = threading.Lock()
 
     def fetch(self, url: str) -> Optional[Image.Image]:
         """Fetch image bytes from URL and return as PIL RGB Image, or None on failure."""
@@ -37,9 +41,10 @@ class ThumbnailFetcher:
             return None
 
         # Check cache
-        if url in self._cache:
-            self._cache.move_to_end(url)
-            return self._cache[url]
+        with self._lock:
+            if url in self._cache:
+                self._cache.move_to_end(url)
+                return self._cache[url]
 
         req = urllib.request.Request(
             url,
@@ -59,9 +64,11 @@ class ThumbnailFetcher:
             img = Image.open(io.BytesIO(data)).convert("RGB")
 
             # Store in LRU cache
-            if len(self._cache) >= self.max_cache_size:
-                self._cache.popitem(last=False)
-            self._cache[url] = img
+            with self._lock:
+                if url not in self._cache and len(self._cache) >= self.max_cache_size:
+                    self._cache.popitem(last=False)
+                self._cache[url] = img
+                self._cache.move_to_end(url)
             return img
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             logger.debug("Network error fetching thumbnail %s: %s", url, e)

@@ -21,6 +21,11 @@ from src.utils.logging import get_logger
 
 logger = get_logger("hybrid_fusion")
 
+# Any score at or below this is a FAISS padding sentinel, not a real match.
+# Legitimate scores come from L2-normalised embeddings (cosine / inner product
+# in [-1, 1]) or RRF (small positives), so this floor cannot exclude real data.
+SENTINEL_SCORE_FLOOR = -1e30
+
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Compute the great-circle distance between two GPS points in kilometers."""
@@ -74,6 +79,22 @@ class HybridMultiSignalReranker:
         clean_name = re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", name)).strip()
         return clean_name or "unknown_vicinity"
 
+    @staticmethod
+    def _is_real_candidate(match: Dict[str, Any]) -> bool:
+        """Return False for FAISS padding rows (id=-1 / score=-FLT_MAX)."""
+        try:
+            score = float(match.get("score", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            return False
+        if not math.isfinite(score) or score <= SENTINEL_SCORE_FLOOR:
+            return False
+        try:
+            if int(match.get("faiss_id", 0) or 0) < 0:
+                return False
+        except (TypeError, ValueError):
+            pass
+        return True
+
     def rerank(
         self,
         retrieved_matches: List[Dict[str, Any]],
@@ -81,6 +102,17 @@ class HybridMultiSignalReranker:
         anchor_coords: Optional[Tuple[float, float]] = None,
     ) -> List[Dict[str, Any]]:
         """Execute hybrid multi-signal fusion reranking across retrieved candidate matches."""
+        if not retrieved_matches:
+            return []
+
+        # 0. Drop FAISS padding entries. When fewer than top_k neighbours exist,
+        # FAISS pads the result set with id=-1 and, for inner-product metrics,
+        # score=-FLT_MAX (~-3.4e38). That value is finite, so an isfinite check
+        # alone does not catch it; left in place it dominates the min/max
+        # normalisation below and collapses every real candidate's relative
+        # rank to ~1.0. Embeddings are L2-normalised, so any legitimate score
+        # (cosine, inner product, or RRF) is far inside this floor.
+        retrieved_matches = [m for m in retrieved_matches if self._is_real_candidate(m)]
         if not retrieved_matches:
             return []
 
@@ -153,7 +185,8 @@ class HybridMultiSignalReranker:
 
             # Signal 3: Spatial Proximity Score [0.0, 1.0]
             dist_km: Optional[float] = None
-            spatial_score = vicinity_score  # Default fallback if coordinates unavailable
+            spatial_score = 0.0
+            has_spatial = False
 
             if centroid_lat is not None and centroid_lon is not None:
                 try:
@@ -162,18 +195,29 @@ class HybridMultiSignalReranker:
                     if abs(c_lat) > 1e-4 and abs(c_lon) > 1e-4:
                         dist_km = haversine_distance_km(c_lat, c_lon, centroid_lat, centroid_lon)
                         spatial_score = float(math.exp(-(dist_km ** 2) / (2.0 * (self.spatial_sigma_km ** 2))))
-                    else:
-                        # GPS missing on this record -> graceful fallback to vicinity score
-                        spatial_score = vicinity_score
+                        has_spatial = True
                 except (ValueError, TypeError):
-                    spatial_score = vicinity_score
+                    has_spatial = False
 
-            # Combined Fusion Formula
-            final_score = (
-                self.w_visual * v_sim
-                + self.w_vicinity * vicinity_score
-                + self.w_spatial * spatial_score
-            )
+            # Combined Fusion Formula. When GPS is unavailable (the normal case
+            # for GLDv2, which ships no coordinates) the spatial weight is
+            # redistributed proportionally across the remaining two signals
+            # rather than folded into vicinity, which would silently
+            # double-count cluster size and change the documented weighting.
+            if has_spatial:
+                final_score = (
+                    self.w_visual * v_sim
+                    + self.w_vicinity * vicinity_score
+                    + self.w_spatial * spatial_score
+                )
+            else:
+                spatial_score = vicinity_score
+                active_w = self.w_visual + self.w_vicinity
+                final_score = (
+                    (self.w_visual * v_sim + self.w_vicinity * vicinity_score) / active_w
+                    if active_w > 0
+                    else v_sim
+                )
 
             # Build enriched match record
             m_copy = dict(match)
