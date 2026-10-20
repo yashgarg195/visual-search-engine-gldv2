@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const locSpecificName = document.getElementById("locSpecificName");
   const locSummary = document.getElementById("locSummary");
   const refGalleryGrid = document.getElementById("refGalleryGrid");
-  const gmapsLink = document.getElementById("gmapsLink");
+
   const coordsDisplay = document.getElementById("coordsDisplay");
 
 
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (data.available_indices && indexTypeSelect) {
           const ivfCount = data.ivf_vectors ? ` (${(data.ivf_vectors / 1e6).toFixed(2)}M)` : "";
-          const hnswCount = data.hnsw_vectors ? ` (${(data.hnsw_vectors / 1e3).toFixed(0)}k)` : "";
+          const hnswCount = data.hnsw_vectors ? ` (${(data.hnsw_vectors / 1e6).toFixed(2)}M)` : "";
           const currentVal = indexTypeSelect.value;
           indexTypeSelect.innerHTML = "";
           if (data.available_indices.includes("ivfpq")) {
@@ -345,7 +345,6 @@ document.addEventListener("DOMContentLoaded", () => {
           index_type: indexType,
           ef_search: efSearch,
           rerank: false,
-          alpha_qe: false,
         }),
       });
 
@@ -373,7 +372,6 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("index_type", indexType);
       formData.append("ef_search", efSearch);
       formData.append("rerank", "false");
-      formData.append("alpha_qe", "false");
 
       const response = await fetch("/api/search/image", {
         method: "POST",
@@ -528,37 +526,50 @@ document.addEventListener("DOMContentLoaded", () => {
       const isVicinityVerified = Boolean(m.is_vicinity_verified);
       const isConsensus = Boolean(m.consensus);
 
-      card.innerHTML = `
-        <div class="match-top">
-          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-            <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
-            ${isVicinityVerified ? `<span class="vicinity-badge">📍 Vicinity Verified</span>` : ""}
-            ${isConsensus ? `<span class="consensus-badge">⭐ CONSENSUS</span>` : ""}
-          </div>
-          <span class="score-display">Fused: ${scoreVal.toFixed(4)}</span>
-        </div>
-        <div class="score-bar-bg">
-          <div class="score-bar-fill" style="width: ${pct}%"></div>
-        </div>
-        <div class="match-name">${escapeHtml(m.landmark_name)}</div>
-        <div class="match-details">
-          <span>Landmark ID: <strong>${m.landmark_id}</strong></span>
-          <span>Image ID: <strong>${m.image_id}</strong></span>
-          <span>Dataset Split: <strong>${m.split}</strong></span>
-          ${m.vicinity_cluster ? `<span>Vicinity: <strong>${escapeHtml(m.vicinity_cluster)}</strong></span>` : ""}
-          ${m.distance_km !== null && m.distance_km !== undefined ? `<span>Distance: <strong>${m.distance_km} km away</strong></span>` : ""}
-          ${m.visual_sim !== undefined ? `<span>Breakdown: <strong>Vis ${Math.round(m.visual_sim * 100)}% | Vic ${Math.round(m.vicinity_score * 100)}% | Geo ${Math.round(m.spatial_score * 100)}%</strong></span>` : ""}
-          ${m.sources && m.sources.length > 0 ? `<span>Retrieved By: <strong>${m.sources.join(' + ').toUpperCase()}</strong></span>` : ""}
-          ${m.hierarchical_label && m.hierarchical_label !== "nan" ? `<span>Category: <em>${escapeHtml(m.hierarchical_label)}</em></span>` : ""}
-        </div>
+      // Build thumbnail URL from image_id and split
+      const imgId = m.image_id || "";
+      const imgSplit = m.split || "train";
+      const thumbUrl = (imgId.length >= 3) ? `/api/image/${imgSplit}/${imgId[0]}/${imgId[1]}/${imgId[2]}/${imgId}.jpg` : "";
 
-        ${
-          m.category_url
-            ? `<div class="match-footer">
-                 <a href="${m.category_url}" target="_blank" rel="noopener noreferrer" class="match-link">Wikimedia Category ↗</a>
-               </div>`
-            : ""
-        }
+      card.innerHTML = `
+        <div class="match-card-inner">
+          ${thumbUrl ? `<div class="match-thumb-wrap">
+            <img class="match-thumb" src="${thumbUrl}" alt="${escapeHtml(m.landmark_name)}" loading="lazy"
+                 onerror="this.parentElement.style.display='none'" />
+          </div>` : ""}
+          <div class="match-content">
+            <div class="match-top">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="rank-badge ${m.rank <= 3 ? "rank-top" : ""}">#${m.rank}</span>
+                ${isVicinityVerified ? `<span class="vicinity-badge">📍 Vicinity Verified</span>` : ""}
+                ${isConsensus ? `<span class="consensus-badge">⭐ CONSENSUS</span>` : ""}
+              </div>
+              <span class="score-display">Fused: ${scoreVal.toFixed(4)}</span>
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" style="width: ${pct}%"></div>
+            </div>
+            <div class="match-name">${escapeHtml(m.landmark_name)}</div>
+            <div class="match-details">
+              <span>Landmark ID: <strong>${m.landmark_id}</strong></span>
+              <span>Image ID: <strong>${m.image_id}</strong></span>
+              <span>Dataset Split: <strong>${m.split}</strong></span>
+              ${m.vicinity_cluster ? `<span>Vicinity: <strong>${escapeHtml(m.vicinity_cluster)}</strong></span>` : ""}
+              ${m.distance_km !== null && m.distance_km !== undefined ? `<span>Distance: <strong>${m.distance_km} km away</strong></span>` : ""}
+              ${m.visual_sim !== undefined ? `<span>Breakdown: <strong>Vis ${Math.round(m.visual_sim * 100)}% | Vic ${Math.round(m.vicinity_score * 100)}% | Geo ${Math.round(m.spatial_score * 100)}%</strong></span>` : ""}
+              ${m.sources && m.sources.length > 0 ? `<span>Retrieved By: <strong>${m.sources.join(' + ').toUpperCase()}</strong></span>` : ""}
+              ${m.hierarchical_label && m.hierarchical_label !== "nan" ? `<span>Category: <em>${escapeHtml(m.hierarchical_label)}</em></span>` : ""}
+            </div>
+
+            ${
+              m.category_url
+                ? `<div class="match-footer">
+                     <a href="${m.category_url}" target="_blank" rel="noopener noreferrer" class="match-link">Wikimedia Category ↗</a>
+                   </div>`
+                : ""
+            }
+          </div>
+        </div>
       `;
       matchesGrid.appendChild(card);
     });

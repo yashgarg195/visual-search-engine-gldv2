@@ -1,6 +1,7 @@
 """FastAPI REST API & Web Frontend Server for GLDv2 Visual Search Engine."""
 
 import sys
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -39,7 +40,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="GLDv2 Visual Landmark Search API",
-    description="High-throughput visual and text search across 4.17 million landmarks using OpenCLIP and FAISS IVF-PQ.",
+    description="High-throughput visual and text search across 5.05 million landmarks using OpenCLIP, Multi-Index Fusion, and Gemini Location Intelligence.",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -62,6 +63,9 @@ app.mount("/visualizations", StaticFiles(directory=str(VIS_DIR)), name="visualiz
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Dataset image directory for serving thumbnails
+IMAGE_DIR = Path(os.getenv("IMAGE_DIR", str(PROJECT_ROOT / "data" / "raw" / "images")))
 
 
 class TextSearchRequest(BaseModel):
@@ -92,6 +96,16 @@ def root():
 def get_system_info():
     """Return runtime metadata, index metrics, and device details."""
     return search_service.get_info()
+
+
+@app.get("/api/image/{split}/{a}/{b}/{c}/{image_id}.jpg")
+@app.head("/api/image/{split}/{a}/{b}/{c}/{image_id}.jpg")
+def serve_dataset_image(split: str, a: str, b: str, c: str, image_id: str):
+    """Serve a dataset image from the local GLDv2 image directory for thumbnail display."""
+    img_path = IMAGE_DIR / split / a / b / c / f"{image_id}.jpg"
+    if not img_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(img_path, media_type="image/jpeg")
 
 
 @app.post("/api/search/text")

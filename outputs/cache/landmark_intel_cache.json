@@ -228,5 +228,15 @@
     "longitude": 100.4136339,
     "summary": "Financial District, Toronto is a world-renowned landmark located in Pulau Pinang, Malaysia.",
     "search_query": "Financial District, Toronto Pulau Pinang"
+  },
+  "eiffel tower paris": {
+    "prominent_attraction": "Groenerei (Brugge)",
+    "specific_subject": "Groenerei (Brugge)",
+    "city": "",
+    "country": "",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Groenerei (Brugge) is a notable landmark.",
+    "search_query": "Groenerei (Brugge)"
   }
 }

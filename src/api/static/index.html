@@ -8,9 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Leaflet Map CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 </head>
 <body>
   <div class="app-container">
@@ -20,13 +18,13 @@
         <div class="brand-logo">🏛️</div>
         <div>
           <h1>GLDv2 Visual Landmark Search</h1>
-          <p class="subtitle">Real-time retrieval across 4.17M landmark images using OpenCLIP &amp; FAISS IVF-PQ</p>
+          <p class="subtitle">Real-time retrieval across 5.05M landmark images using OpenCLIP &amp; Multi-Index Fusion</p>
         </div>
       </div>
       <div class="system-pills" id="systemPills">
         <div class="pill pill-success">
           <span class="pill-dot"></span>
-          <span id="pillVectors">4,173,658 Vectors</span>
+          <span id="pillVectors">5,052,992 Vectors</span>
         </div>
         <div class="pill">
           <span>Model: <strong>OpenCLIP ViT-B-32</strong></span>
@@ -253,6 +251,6 @@
     </section>
   </div>
 
-  <script src="/static/app.js?v=2.5"></script>
+  <script src="/static/app.js?v=2.6"></script>
 </body>
 </html>

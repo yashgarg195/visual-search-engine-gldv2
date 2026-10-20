@@ -12,7 +12,7 @@ The system combines:
 1. **Dense Vector Search**: Multi-index retrieval supporting **FAISS IVF-PQ** (Inverted File Product Quantization) and a **high-connectivity HNSW-PQ** graph ($M=64, \text{efConstruction}=256$), with **Reciprocal Rank Fusion (RRF)** for hybrid ensemble search.
 2. **AI Location Intelligence**: Gemini 3.8 Flash combined with OpenStreetMap Nominatim and a pre-warmed disk cache for automated reverse geocoding, anchor resolution, and landmark summarization.
 3. **Stage-2 Hybrid Multi-Signal Fusion Reranking**: Ultra-fast ($< 2\text{ ms}$) fusion combining visual cosine similarity, physical vicinity consensus, and geodesic spatial proximity to resolve split landmark IDs and eliminate geographic false positives.
-4. **Interactive Web Dashboard**: Modern single-page application with drag-and-drop / clipboard image search, horizontal reference gallery scrolling, and direct Google Maps iframe pin rendering.
+4. **Interactive Web Dashboard**: Modern single-page application with drag-and-drop / clipboard image search, responsive thumbnail match cards, horizontal reference gallery scrolling, and direct on-page Google Maps iframe pin rendering.
 
 ---
 
@@ -55,9 +55,10 @@ The system combines:
                                                  │
                                                  ▼
                                      [Interactive Web UI]
-                                     - Fused Matches & Badges
+                                     - Fused Matches with Thumbnails
                                      - On-Page Google Maps Pin
                                      - Horizontal Reference Cards
+                                     - Vicinity & Consensus Badges
 ```
 
 ---
@@ -72,8 +73,8 @@ The system combines:
 | **Ensemble Reranker** | Reciprocal Rank Fusion (RRF) | Constant $k=60$ fusing IVF-PQ and HNSW-PQ ranks |
 | **Fusion Reranker** | `HybridMultiSignalReranker` | $w_{\text{vis}}=0.50, w_{\text{vic}}=0.30, w_{\text{geo}}=0.20, \sigma_{\text{spatial}}=5.0\text{ km}$ ($< 2\text{ ms}$ latency) |
 | **Location Intel** | Gemini 3.8 Flash + Nominatim | Persistent JSON cache in `outputs/cache/landmark_intel_cache.json` |
-| **API Backend** | FastAPI + Uvicorn | Async endpoints (`/api/search/image`, `/api/search/text`, `/api/info`) |
-| **Frontend** | Vanilla JS + Modern CSS | No build step required; embedded Google Maps `<iframe>` |
+| **API Backend** | FastAPI + Uvicorn | Async endpoints (`/api/search/image`, `/api/search/text`, `/api/info`, `/api/image/...`) |
+| **Frontend** | Vanilla JS + Modern CSS | No build step required; embedded Google Maps `<iframe>`; thumbnail cards |
 
 ---
 
@@ -81,19 +82,19 @@ The system combines:
 
 ```
 visual-search-engine-gldv2/
-├── .env                                  # Environment variables (GEMINI_API_KEY, paths)
+├── .env                                  # Environment variables (GEMINI_API_KEY, IMAGE_DIR, paths)
 ├── .gitignore                            # Ignores .index, .npy, .parquet, data/cache, venv
 ├── requirements.txt                      # Core dependencies (faiss, torch, open_clip, etc.)
 ├── AGENT_HANDOFF.md                      # This handoff documentation
 │
 ├── src/
 │   ├── api/
-│   │   ├── app.py                        # FastAPI application entrypoint & routes
+│   │   ├── app.py                        # FastAPI application routes (search, info, image serving)
 │   │   ├── service.py                    # SearchEngineService orchestrating FAISS + Fusion
 │   │   └── static/
 │   │       ├── index.html                # Single-page UI with Google Maps & metrics
-│   │       ├── app.js                    # UI logic, search triggers, match card rendering
-│   │       └── style.css                 # Dark-mode dashboard styling
+│   │       ├── app.js                    # UI logic, search triggers, match card rendering with thumbnails
+│   │       └── style.css                 # Dark-mode dashboard styling with card animations
 │   ├── embeddings/
 │   │   └── clip_encoder.py               # OpenCLIP ViT-B-32 wrapper with auto-device selection
 │   ├── index/
@@ -138,7 +139,9 @@ visual-search-engine-gldv2/
     ├── test_hnsw_pq_index.py             # Unit tests for HNSW graph operations
     ├── test_ivfpq_index.py               # Unit tests for IVF-PQ operations
     ├── test_metadata_resolver.py         # Unit tests for metadata and GLDv2 mapping
-    └── test_end_to_end.py                # End-to-end integration test
+    ├── test_geometric_verifier.py        # Unit tests for geometric verification utilities
+    ├── test_lightglue_and_alpha_qe.py    # Unit tests for fallback matching & QE logic
+    └── test_end_to_end.py                # End-to-end integration test (34 passed tests)
 ```
 
 ---
@@ -170,6 +173,19 @@ visual-search-engine-gldv2/
 * To prevent burning user Gemini API quotas during testing and development:
   - Location intelligence is stored in a 2-tier cache: in-memory and persistent disk cache in `outputs/cache/landmark_intel_cache.json`.
   - Automated tests and search benchmarks use text-retrieval / mock paths that do not hit the live Gemini API.
+  - **Standing constraint**: Do not loop against live Gemini API during automated regression tests.
+
+### D. UI/UX Refinement & Front-End Architecture
+* **CSS Syntax Correction**: Fixed an unclosed `.ref-gallery-sub` declaration in `style.css` that was risking cascading parse failures for gallery rules.
+* **Leaflet Removal & Embedded Google Maps**: Removed legacy Leaflet JS/CSS CDN script tags (~150KB overhead). Google Maps pin is now rendered entirely on-page within an embedded `<iframe>` in `#mapContainer` without external page redirects.
+* **Local Dataset Image Serving & Match Card Thumbnails**:
+  - Added dedicated FastAPI endpoint `GET /api/image/{split}/{a}/{b}/{c}/{image_id}.jpg` to directly stream local GLDv2 images.
+  - Added match card image thumbnails in `app.js` and responsive CSS in `style.css` (`.match-card-inner`, `.match-thumb-wrap`, `.match-thumb`), featuring subtle hover-zoom transitions and graceful `onerror` hiding.
+* **Parameter & Metadata Hygiene**:
+  - Removed deprecated `alpha_qe: false` request payloads from client search calls.
+  - Synchronized vector counts across header pill and HNSW dropdown to accurately display `5.05M` / `5,052,992 Vectors`.
+  - Cleaned dead DOM selector `gmapsLink`.
+  - Bumped script cache-busting parameter to `app.js?v=2.6`.
 
 ---
 
@@ -185,6 +201,12 @@ OMP_NUM_THREADS="1" uvicorn src.api.app:app --host 127.0.0.1 --port 8000
 ```
 Open your browser to: **`http://127.0.0.1:8000`**
 
+### Verify Image Thumbnail Serving
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/api/image/train/0/0/0/000001.jpg
+# Expected: 200
+```
+
 ### Run CLI Searches
 ```bash
 # Text query using HNSW graph index
@@ -199,7 +221,7 @@ python scripts/search.py --query "Taj Mahal Agra" --index-type ensemble --top-k 
 
 ### Run the Test Suite
 ```bash
-# Run all unit and integration tests (31+ tests)
+# Run all unit and integration tests (34 tests, all passing)
 pytest tests/
 ```
 
@@ -219,6 +241,9 @@ Expected output:
   "hnsw_vectors": 5052992,
   "available_indices": ["ivfpq", "hnswpq", "ensemble"],
   "default_index": "ivfpq",
+  "default_nprobe": 64,
+  "default_ef_search": 64,
+  "default_top_k": 10,
   "is_ready": true
 }
 ```
