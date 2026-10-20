@@ -323,10 +323,14 @@ class LocationResolver:
                     self.cache.pop(cache_key, None)
 
         # Check curated prominent anchor knowledge base first
-        combined_text = f"{raw_q} {top_name}".lower()
-        candidate_names = [(c.get("landmark_name", "") or c.get("title", "") or "").lower() for c in candidates[:4]]
+        # Match strictly against the query text (for text queries) or the lead candidate (candidates[0]).
+        # Never match secondary candidates (candidates[1..4]), which causes identity leakage between distinct landmarks.
+        target_texts = [top_name.lower()]
+        if not is_image_query and clean_q:
+            target_texts.append(clean_q)
+
         for anchor_key, anchor_data in PROMINENT_ANCHOR_MAP.items():
-            if anchor_key in combined_text or any(anchor_key in c_name for c_name in candidate_names):
+            if any(anchor_key in t for t in target_texts if t):
                 res = LocationResolution(
                     prominent_attraction=anchor_data["prominent_attraction"],
                     specific_subject=anchor_data["specific_subject"],

@@ -250,13 +250,23 @@
     "search_query": "Gateway of India Mumbai"
   },
   "lm:190216": {
-    "prominent_attraction": "Saint Basil's Cathedral",
-    "specific_subject": "Monument to Minin and Pozharsky",
-    "city": "Moscow",
+    "prominent_attraction": "Church of the Savior on Spilled Blood",
+    "specific_subject": "Church of the Savior on Spilled Blood",
+    "city": "Saint Petersburg",
     "country": "Russia",
-    "latitude": 55.7525,
-    "longitude": 37.6231,
-    "summary": "Located on Moscow's Red Square directly in front of the world-famous Saint Basil's Cathedral, this bronze statue commemorates Dmitry Pozharsky and Kuzma Minin, leaders of the 1612 resistance.",
-    "search_query": "Saint Basil Cathedral Moscow"
+    "latitude": 59.9401,
+    "longitude": 30.3289,
+    "summary": "An architectural masterpiece along the Griboyedov Canal in Saint Petersburg, renowned for its elaborate Russian Revival onion domes and over 7,500 square meters of mosaics.",
+    "search_query": "Church Savior on Spilled Blood Saint Petersburg"
+  },
+  "church of the saviour on the blood": {
+    "prominent_attraction": "Church of the Savior on Spilled Blood",
+    "specific_subject": "Church of the Savior on Spilled Blood",
+    "city": "Saint Petersburg",
+    "country": "Russia",
+    "latitude": 59.9401,
+    "longitude": 30.3289,
+    "summary": "An architectural masterpiece along the Griboyedov Canal in Saint Petersburg, renowned for its elaborate Russian Revival onion domes and over 7,500 square meters of mosaics.",
+    "search_query": "Church Savior on Spilled Blood Saint Petersburg"
   }
 }
