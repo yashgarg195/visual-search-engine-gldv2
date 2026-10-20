@@ -300,10 +300,32 @@ class SearchEngineService:
 
             retrieved_matches.append(match_data)
             rank += 1
+        location_info = None
+        reference_images: List[Dict[str, Any]] = []
+        prominent_anchor = None
+        anchor_coords = None
+
+        if retrieved_matches:
+            try:
+                loc_res = self.location_resolver.resolve(query_desc, retrieved_matches)
+                if loc_res:
+                    location_info = loc_res.to_dict()
+                    prominent_anchor = loc_res.prominent_attraction
+                    if loc_res.latitude and loc_res.longitude and (abs(loc_res.latitude) > 1e-4 or abs(loc_res.longitude) > 1e-4):
+                        anchor_coords = (float(loc_res.latitude), float(loc_res.longitude))
+                    reference_images = self.reference_fetcher.fetch_reference_images(
+                        loc_res.search_query,
+                        max_images=4,
+                    )
+            except Exception as e:
+                logger.warning("Location resolution / reference pipeline failed: %s", e)
+
         # 6. Hybrid Multi-Signal Fusion Reranking (50% Visual + 30% Vicinity Consensus + 20% Spatial Proximity)
         t_fusion_start = time.perf_counter()
         final_matches = self.fusion_reranker.rerank(
             retrieved_matches=retrieved_matches,
+            prominent_anchor=prominent_anchor,
+            anchor_coords=anchor_coords,
         )
         t_fusion_ms = (time.perf_counter() - t_fusion_start) * 1000.0
 
@@ -312,8 +334,9 @@ class SearchEngineService:
 
         if voting_result.leading_candidate:
             lead = voting_result.leading_candidate
+            display_name = prominent_anchor if (prominent_anchor and location_info) else lead.landmark_name
             voting_summary = {
-                "landmark_name": lead.landmark_name,
+                "landmark_name": display_name,
                 "specific_landmark": lead.landmark_name,
                 "landmark_id": lead.landmark_id,
                 "split": lead.split,
@@ -323,20 +346,6 @@ class SearchEngineService:
                 "category_url": lead.category_url or "",
                 "hierarchical_label": lead.hierarchical_label or "",
             }
-
-        location_info = None
-        reference_images: List[Dict[str, Any]] = []
-        if final_matches:
-            try:
-                loc_res = self.location_resolver.resolve(query_desc, final_matches)
-                if loc_res:
-                    location_info = loc_res.to_dict()
-                    reference_images = self.reference_fetcher.fetch_reference_images(
-                        loc_res.search_query,
-                        max_images=4,
-                    )
-            except Exception as e:
-                logger.warning("Location resolution / reference pipeline failed: %s", e)
 
         return {
             "query_desc": query_desc,

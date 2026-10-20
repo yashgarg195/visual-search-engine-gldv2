@@ -60,22 +60,33 @@ class HybridMultiSignalReranker:
         name = str(match.get("landmark_name") or "").lower().strip()
         hier = str(match.get("hierarchical_label") or "").strip()
 
-        # If hierarchical taxonomy exists (e.g., 'Europe > Russia > Moscow > Red Square')
-        if hier and hier.lower() != "nan":
-            parts = [p.strip() for p in hier.split(">") if p.strip()]
-            if len(parts) >= 2:
-                # Use bottom 2 levels (e.g. City + Landmark/Area)
-                return f"{parts[-2]} > {parts[-1]}".lower()
-            elif len(parts) == 1:
-                return parts[0].lower()
-
-        # Check prominent anchor match
+        # Check prominent anchor match first
         if prominent_anchor:
             clean_anchor = prominent_anchor.lower().strip()
             if clean_anchor in name or name in clean_anchor:
                 return clean_anchor
 
-        # Clean landmark name as fallback cluster key
+        # In GLDv2, single-word hierarchical labels are architectural typology (e.g. 'church', 'tower'),
+        # NOT geographic locations. We must NEVER cluster all churches or towers on Earth into one vicinity!
+        generic_typologies = {
+            "church", "tower", "building", "monument", "sculpture", "mountain",
+            "bridge", "castle", "palace", "temple", "fountain", "gate", "arch",
+            "square", "house", "museum", "park", "station", "lake", "river",
+            "city", "none", "unknown", "nan", "fort", "chapel", "cathedral",
+            "basilica", "monastery", "mosque", "shrine", "pyramid", "ruins",
+            "tomb", "lighthouse", "statue", "column", "wall", "amphitheatre"
+        }
+
+        # If true multi-level geographical hierarchy exists (e.g., 'Russia > Moscow > Red Square')
+        if hier and hier.lower() != "nan":
+            parts = [p.strip() for p in hier.split(">") if p.strip()]
+            if len(parts) >= 2:
+                # Use bottom 2 levels (e.g. City + Landmark/Area)
+                return f"{parts[-2]} > {parts[-1]}".lower()
+            elif len(parts) == 1 and parts[0].lower() not in generic_typologies:
+                return parts[0].lower()
+
+        # Clean landmark name as specific fallback cluster key
         clean_name = re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", name)).strip()
         return clean_name or "unknown_vicinity"
 

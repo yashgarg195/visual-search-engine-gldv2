@@ -268,5 +268,35 @@
     "longitude": 30.3289,
     "summary": "An architectural masterpiece along the Griboyedov Canal in Saint Petersburg, renowned for its elaborate Russian Revival onion domes and over 7,500 square meters of mosaics.",
     "search_query": "Church Savior on Spilled Blood Saint Petersburg"
+  },
+  "lm:114046": {
+    "prominent_attraction": "Milan Cathedral (Duomo di Milano)",
+    "specific_subject": "Piazza del Duomo",
+    "city": "Milan",
+    "country": "Italy",
+    "latitude": 45.4641,
+    "longitude": 9.1919,
+    "summary": "Piazza del Duomo serves as the vibrant heart of Milan, acting as the grand public square that frames the magnificent Gothic architecture of the Milan Cathedral. This iconic plaza is the city's primary gathering point, offering visitors an unparalleled view of the cathedral's intricate spires and marble facade.",
+    "search_query": "Duomo di Milano square"
+  },
+  "saint basil cathedral": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Saint Basil's Cathedral",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Commissioned by Ivan the Terrible in the 16th century on Moscow's Red Square, Saint Basil's Cathedral is globally famous for its fairy-tale cluster of multi-colored onion domes.",
+    "search_query": "Saint Basil Cathedral Moscow"
+  },
+  "christ the redeemer": {
+    "prominent_attraction": "Christ the Redeemer",
+    "specific_subject": "Christ the Redeemer (Cristo Redentor)",
+    "city": "Rio de Janeiro",
+    "country": "Brazil",
+    "latitude": -22.9519,
+    "longitude": -43.2105,
+    "summary": "Standing 30 meters tall atop the 700-meter Corcovado mountain overlooking Rio de Janeiro, Christ the Redeemer is a colossal Art Deco statue of Jesus Christ and one of the New Seven Wonders of the World.",
+    "search_query": "Christ the Redeemer Rio de Janeiro"
   }
 }
