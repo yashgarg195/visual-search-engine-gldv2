@@ -1,5 +1,5 @@
 /* =============================================================
-   Landmark Lens — Swiss-minimal design system
+   Landmarq — Swiss-minimal design system
    Playful palette + rounded type. Flat surfaces, 1px rules, no gradients, no gloss.
    ============================================================= */
 
@@ -431,7 +431,21 @@ button { background: none; border: none; cursor: pointer; }
 }
 .intel-main .disclosure { margin-top: var(--s-4); }
 
+.ref-gallery {
+  margin-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-4);
+}
+.ref-gallery-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-3); margin-bottom: var(--s-3);
+}
+.ref-gallery-head h4 {
+  margin: 0; font-size: var(--fs-sm); color: var(--ink-2); font-weight: 500;
+}
+
 .gallery-controls { display: flex; gap: var(--s-2); margin-bottom: var(--s-3); }
+.ref-gallery-head .gallery-controls { margin-bottom: 0; }
 .ref-scroller {
   display: flex; gap: var(--s-3);
   overflow-x: auto; padding-bottom: var(--s-2);
