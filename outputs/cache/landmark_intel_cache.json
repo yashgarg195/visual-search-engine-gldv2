@@ -238,5 +238,45 @@
     "longitude": 0.0,
     "summary": "Groenerei (Brugge) is a notable landmark.",
     "search_query": "Groenerei (Brugge)"
+  },
+  "lm:169965": {
+    "prominent_attraction": "Riddarholmen",
+    "specific_subject": "Riddarholmen",
+    "city": "",
+    "country": "",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Riddarholmen is a notable landmark.",
+    "search_query": "Riddarholmen"
+  },
+  "lm:112189": {
+    "prominent_attraction": "Saint Basil's Cathedral",
+    "specific_subject": "Monument to Minin and Pozharsky",
+    "city": "Moscow",
+    "country": "Russia",
+    "latitude": 55.7525,
+    "longitude": 37.6231,
+    "summary": "Located on Moscow's Red Square directly in front of the world-famous Saint Basil's Cathedral, this bronze statue commemorates Dmitry Pozharsky and Kuzma Minin, leaders of the 1612 resistance.",
+    "search_query": "Saint Basil Cathedral Moscow"
+  },
+  "lm:190216": {
+    "prominent_attraction": "Church of the Saviour on the Blood",
+    "specific_subject": "Church of the Saviour on the Blood",
+    "city": "",
+    "country": "church",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Church of the Saviour on the Blood is a world-renowned landmark located in church.",
+    "search_query": "Church of the Saviour on the Blood"
+  },
+  "lm:47378": {
+    "prominent_attraction": "Eiffel Tower",
+    "specific_subject": "Eiffel Tower",
+    "city": "",
+    "country": "tower",
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "summary": "Eiffel Tower is a world-renowned landmark located in tower.",
+    "search_query": "Eiffel Tower"
   }
 }
