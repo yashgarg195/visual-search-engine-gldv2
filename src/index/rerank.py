@@ -52,7 +52,7 @@ class TwoStageReranker:
         candidate_faiss_ids: List[int],
         top_k: int,
     ) -> List[Dict[str, Any]]:
-        """Compute exact dot product for candidates and return the top-K reranked list."""
+        """Compute exact dot product for candidates and return the top-K reranked list using batched shard reads."""
         if len(candidate_faiss_ids) == 0:
             return []
 
@@ -62,34 +62,55 @@ class TwoStageReranker:
         if q_norm > 0:
             query_vec = query_vec / q_norm
 
+        # Filter valid IDs and deduplicate while preserving order
+        unique_fids = list(dict.fromkeys(int(f) for f in candidate_faiss_ids if f >= 0))
+        if not unique_fids:
+            return []
+
+        # 1. Batched mapping lookup via reindex
+        sub_df = self.id_mapping_df.reindex(unique_fids)
+        sub_df = sub_df.dropna(subset=["shard_name", "shard_row_idx"])
+        if sub_df.empty:
+            return []
+
+        sub_df["shard_row_idx"] = sub_df["shard_row_idx"].astype(int)
+        sub_df = sub_df[sub_df["shard_row_idx"] >= 0]
+        if sub_df.empty:
+            return []
+
+        # 2. Group surviving rows by shard_name
         reranked_items = []
-        for fid in candidate_faiss_ids:
-            if fid not in self.id_mapping_df.index:
+        for shard_name, group in sub_df.groupby("shard_name", sort=False):
+            arr = self._get_shard_mmap(str(shard_name))
+            if arr is None:
                 continue
 
-            row = self.id_mapping_df.loc[fid]
-            shard_name = str(row.get("shard_name", ""))
-            row_idx = int(row.get("shard_row_idx", -1))
-
-            if not shard_name or row_idx < 0:
+            row_indices = group["shard_row_idx"].values
+            valid_mask = row_indices < len(arr)
+            if not np.any(valid_mask):
                 continue
+            if not np.all(valid_mask):
+                group = group.iloc[valid_mask]
+                row_indices = row_indices[valid_mask]
 
-            arr = self._get_shard_mmap(shard_name)
-            if arr is None or row_idx >= len(arr):
-                continue
+            # 3. Batch fancy-index read + matmul against query vector
+            vectors = np.asarray(arr[row_indices], dtype=np.float32)
+            scores = vectors @ query_vec
 
-            # Load only this single vector from memory map
-            full_precision_vec = np.array(arr[row_idx], copy=True, dtype=np.float32)
-            exact_score = float(np.dot(query_vec, full_precision_vec))
+            fids = group.index.values
+            img_ids = group["image_id"].astype(str).values if "image_id" in group.columns else [""] * len(group)
+            lm_ids = group["landmark_id"].astype(str).values if "landmark_id" in group.columns else [""] * len(group)
+            splits = group["split"].astype(str).values if "split" in group.columns else [""] * len(group)
 
-            reranked_items.append({
-                "faiss_id": fid,
-                "exact_score": exact_score,
-                "image_id": str(row.get("image_id", "")),
-                "landmark_id": str(row.get("landmark_id", "")),
-                "split": str(row.get("split", "")),
-            })
+            for fid, sc, iid, lid, sp in zip(fids, scores, img_ids, lm_ids, splits):
+                reranked_items.append({
+                    "faiss_id": int(fid),
+                    "exact_score": float(sc),
+                    "image_id": str(iid),
+                    "landmark_id": str(lid),
+                    "split": str(sp),
+                })
 
-        # Sort descending by exact inner product
+        # 4. Sort descending by exact inner product
         reranked_items.sort(key=lambda x: x["exact_score"], reverse=True)
         return reranked_items[:top_k]

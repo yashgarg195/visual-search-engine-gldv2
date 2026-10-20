@@ -194,7 +194,15 @@ class SearchEngineService:
         is_ensemble = "ensemble" in index_type.lower() or "hybrid" in index_type.lower()
         is_hnsw = "hnsw" in index_type.lower() and not is_ensemble
 
-        search_k = min(100, max(top_k * 5, 50))
+        # Wide pool handed to the exact reranker (ANN depth).
+        # Only widen when the exact reranker will actually consume it.
+        if rerank and self.reranker is not None:
+            candidate_k = min(getattr(self.cfg, "rerank_candidate_k", 1000), 2000)
+        else:
+            candidate_k = min(100, max(top_k * 5, 50))
+
+        # What flows downstream into metadata lookup, fusion, and voting. Unchanged.
+        result_k = min(100, max(top_k * 5, 50))
         fusion_meta: Dict[int, Dict[str, Any]] = {}
 
         if is_ensemble:
@@ -206,13 +214,13 @@ class SearchEngineService:
             with self._index_lock:
                 self.index_ivf.set_nprobe(nprobe or 64)
                 self.index_hnsw.set_ef_search(ef_search or 64)
-                sc_ivf, ids_ivf = self.index_ivf.search(query_emb.reshape(1, -1), top_k=search_k)
-                sc_hnsw, ids_hnsw = self.index_hnsw.search(query_emb.reshape(1, -1), top_k=search_k)
+                sc_ivf, ids_ivf = self.index_ivf.search(query_emb.reshape(1, -1), top_k=candidate_k)
+                sc_hnsw, ids_hnsw = self.index_hnsw.search(query_emb.reshape(1, -1), top_k=candidate_k)
             from src.index.fusion import reciprocal_rank_fusion
             scores, faiss_ids, fusion_meta = reciprocal_rank_fusion(
                 [("ivfpq", sc_ivf[0], ids_ivf[0]), ("hnswpq", sc_hnsw[0], ids_hnsw[0])],
                 k=60,
-                top_k=search_k,
+                top_k=candidate_k,
             )
             t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
             active_index = self.index_hnsw
@@ -225,7 +233,7 @@ class SearchEngineService:
             t_search_start = time.perf_counter()
             with self._index_lock:
                 active_index.set_ef_search(ef_search or 64)
-                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=candidate_k)
             t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
             scores = scores[0]
             faiss_ids = faiss_ids[0]
@@ -237,7 +245,7 @@ class SearchEngineService:
             t_search_start = time.perf_counter()
             with self._index_lock:
                 active_index.set_nprobe(nprobe or 64)
-                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=search_k)
+                scores, faiss_ids = active_index.search(query_emb.reshape(1, -1), top_k=candidate_k)
             t_search_ms = (time.perf_counter() - t_search_start) * 1000.0
             scores = scores[0]
             faiss_ids = faiss_ids[0]
@@ -246,9 +254,12 @@ class SearchEngineService:
         if rerank and self.reranker is not None:
             reranker = self.reranker
             valid_ids = [fid for fid in faiss_ids if fid >= 0]
-            reranked = reranker.rerank_candidates(query_emb, valid_ids, top_k=search_k)
+            reranked = reranker.rerank_candidates(query_emb, valid_ids, top_k=result_k)
             faiss_ids = np.array([r["faiss_id"] for r in reranked], dtype=np.int64)
             scores = np.array([r["exact_score"] for r in reranked], dtype=np.float32)
+        else:
+            scores = scores[:result_k]
+            faiss_ids = faiss_ids[:result_k]
 
         # Assemble retrieved records
         retrieved_matches: List[Dict[str, Any]] = []

@@ -62,6 +62,9 @@ class PipelineConfig:
     faiss_nprobe: int = field(default_factory=lambda: int(os.getenv("FAISS_NPROBE", "64")))
     faiss_m: int = field(default_factory=lambda: int(os.getenv("FAISS_M", "64")))
     faiss_nbits: int = field(default_factory=lambda: int(os.getenv("FAISS_NBITS", "8")))
+    rerank_candidate_k: int = field(
+        default_factory=lambda: int(os.getenv("RERANK_CANDIDATE_K", "1000"))
+    )
     faiss_train_sample_size: int = field(
         default_factory=lambda: int(os.getenv("FAISS_TRAIN_SAMPLE_SIZE", "50000"))
     )

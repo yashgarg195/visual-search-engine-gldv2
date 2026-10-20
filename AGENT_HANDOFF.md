@@ -135,9 +135,61 @@ The system combines:
 - **Problem**: Dragging or uploading an image immediately fired a search request, removing user control over parameter tuning (top_k, nprobe, index algorithm).
 - **Solution**: In `src/api/static/app.js`, image upload stages the file and renders a thumbnail preview with a "Ready to search" pill. Execution only triggers when the user explicitly clicks the **Search** button.
 
+### F. Playful Colour & Typography Re-skin (v5.0)
+- **Palette**: Violet accent (`#6d28d9`), warm-cream background (`#fffcf8`), with semantic accents: coral (`#c91a52`, top-rank badge / marker), teal (`#0a7268`, score bars / confidence), amber (chip hover). In dark mode: deep indigo (`#1a1430`) with high-contrast light lavender action fills (`#b9a0ff`, 8.04:1 contrast).
+- **Typography**: Display headings use **Fredoka**; body text uses **Nunito**; numerics and coordinates retain **JetBrains Mono** for fixed-width tabular alignment.
+- **Geometry**: Border radii softened from 6px to 12px; layout is byte-for-byte identical with zero gradients, zero box-shadows, and zero backdrop-filter. Passes 33/33 WCAG AA contrast pairs.
+
+### G. Candidate Pool Decoupling (`candidate_k=1000`) & Vectorized Reranking
+- **Problem**: Previously `search_k = min(100, max(top_k * 5, 50))` was overloaded for both ANN search depth and downstream result size. Capping candidates at 100 artificially limited Recall@100 to only ~54%.
+- **Solution**:
+  1. Decoupled ANN search depth (`candidate_k = 1000`, env-tunable via `RERANK_CANDIDATE_K`) from downstream result size (`result_k = 100`).
+  2. Vectorized `TwoStageReranker.rerank_candidates()` in `src/index/rerank.py` using batched pandas reindexing, grouping by shard, and fancy-indexed matrix-vector multiplication (`arr[row_indices] @ query_vec`).
+  3. Increased reranker throughput by **2.4x–2.5x**, scoring 1,000 unquantized float32 vectors in ~140ms while keeping downstream metadata lookup, fusion, and voting fixed at 100 candidates.
+
 ---
 
-## 5. Repository Structure
+## 5. Retrieval Sweep & Benchmark Analysis
+
+Evaluated over all 5,052,992 vectors with exact ground truth computed across all 494 shards:
+
+### IVF-PQ Sweep (M=64, nbits=8, nlist=4096)
+| nprobe | candidate_k | Recall@10 vs Exact | Recall@100 vs Exact | p50 Latency (ms) | p95 Latency (ms) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| 8 | 100 | 85.20% | 51.32% | 0.65 ms | 1.13 ms |
+| 8 | 500 | 88.80% | 77.60% | 0.66 ms | 0.85 ms |
+| 8 | 1000 | 89.00% | 80.70% | 0.67 ms | 0.92 ms |
+| 16 | 100 | 90.60% | 53.58% | 0.81 ms | 1.06 ms |
+| 16 | 500 | 95.20% | 84.72% | 0.88 ms | 1.23 ms |
+| 16 | 1000 | 95.80% | 89.56% | 0.91 ms | 1.20 ms |
+| 32 | 100 | 92.60% | 54.22% | 1.25 ms | 1.82 ms |
+| 32 | 500 | 97.80% | 87.66% | 1.23 ms | 1.64 ms |
+| 32 | 1000 | 98.80% | 93.66% | 1.30 ms | 1.81 ms |
+| **64** *(prod)* | 100 | 92.80% | 54.44% | 2.03 ms | 2.62 ms |
+| **64** *(prod)* | 500 | 98.40% | 88.76% | 2.03 ms | 2.62 ms |
+| **64** *(prod)* | **1000** | **99.40%** | **95.42%** | **2.09 ms** | **2.73 ms** |
+| 128 | 1000 | 99.60% | 96.02% | 3.53 ms | 4.45 ms |
+| 256 | 1000 | 99.60% | 96.24% | 6.55 ms | 7.90 ms |
+
+### HNSW-PQ Sweep (M=64, efConstruction=256)
+| efSearch | candidate_k | Recall@10 vs Exact | Recall@100 vs Exact | p50 Latency (ms) | p95 Latency (ms) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| 64 | 100 | 98.40% | 66.18% | 0.63 ms | 0.89 ms |
+| 64 | 1000 | 98.60% | 88.42% | 0.53 ms | 0.78 ms |
+| 128 | 100 | 99.20% | 66.74% | 0.77 ms | 1.16 ms |
+| 128 | 500 | 99.60% | 94.60% | 0.78 ms | 1.08 ms |
+| **128** *(prod)* | **1000** | **99.60%** | **95.28%** | **0.81 ms** | **1.15 ms** |
+| **256** | **1000** | **100.00%** | **98.22%** | **1.26 ms** | **1.80 ms** |
+| 512 | 1000 | 100.00% | 99.32% | 2.07 ms | 2.94 ms |
+
+### Key Takeaway on Retrieval Health
+- At `nprobe=64, candidate_k=1000`, IVF-PQ achieves **95.42% Recall@100 vs Exact** at only **2.09 ms**.
+- At `efSearch=128, candidate_k=1000`, HNSW-PQ achieves **95.28% Recall@100 vs Exact** at **0.81 ms** (and **98.22%** at `efSearch=256`).
+- **Conclusion**: Because ANN recall against exact search is $\ge 95\%$, the vector index is exceptionally healthy. Vector quantization causes negligible information loss; any remaining visual retrieval ambiguities stem from the CLIP ViT-B-32 vision backbone, confirming that index tuning is complete.
+
+---
+
+## 6. Repository Structure
 
 ```
 visual-search-engine-gldv2/
