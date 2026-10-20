@@ -273,9 +273,9 @@ Expected output:
 
 ---
 
-## 8. Frontend & UI Architecture Guide for Incoming Agent
+## 8. Frontend & UI Architecture Guide (v4.0 Swiss Minimal / MongoDB Style)
 
-If you are the incoming agent assigned to UI/UX tasks, review this section before making changes:
+The frontend uses a clean Swiss-minimalist / MongoDB-inspired UI with zero gradients, zero box-shadows, and crisp 1px hairlines.
 
 ### Key UI File Locations
 * **HTML Skeleton**: [`src/api/static/index.html`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/api/static/index.html)
@@ -283,32 +283,28 @@ If you are the incoming agent assigned to UI/UX tasks, review this section befor
 * **Stylesheet**: [`src/api/static/style.css`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/api/static/style.css)
 
 ### Core UI Component Structure
-1. **Header & Health Indicators** (`#systemPills`):
-   - Vector Count (`#pillVectors`), Model tag, Device tag (`#pillDevice`).
-   - Populated dynamically on page load via `GET /api/info`.
-2. **Query Input Section**:
-   - Tab switch: `#tabImageBtn` (drag-and-drop / clipboard paste) and `#tabTextBtn` (natural language query).
-   - Sample prompt chips (`.sample-chip`) for instant pre-baked queries.
-   - Tuning parameters dropdown: dynamically updates between Voronoi Probes (`nprobe`), Search Depth (`efSearch`), and Hybrid Depth depending on index selected.
-3. **Execution Latency Bar** (`.metrics-panel`):
-   - Displays Embedding Latency, Vector Search Latency, Multi-Signal Fusion Latency, and Total Latency in milliseconds.
-4. **Evidence Atlas & Location Intelligence** (`#locationIntelCard`):
-   - **Reference Atlas** (`#refGalleryCard`, `#refGalleryGrid`): Horizontally scrollable container with snap alignment and left/right button controls (`#refScrollLeft`, `#refScrollRight`) displaying canonical reference photos fetched from Wikimedia.
-   - **Google Maps Evidence Card** (`.map-evidence-card`, `#mapContainer`): Rounded embedded `<iframe>` (`#gmapsIframe`) showing exact landmark pin. Coordinates displayed in `#coordsDisplay`.
-5. **Top Candidate Card** (`#topCandidateCard`):
-   - Displays identified landmark name, confidence margin over runner-up, match count, split, and Wikimedia Category link button.
-6. **Matches Grid** (`#matchesGrid`):
-   - Dynamically populated with `.match-card` elements containing:
-     - Local dataset thumbnail image (`/api/image/{split}/{a}/{b}/{c}/{image_id}.jpg`) with lazy loading and error fallback.
-     - Rank badge (`.rank-badge`, `.rank-top`), fused evidence score (`.score-display`), and normalized progress bar (`.score-bar-fill`).
-     - Badges: `📍 Vicinity Verified` and `⭐ CONSENSUS`.
-     - Evidence breakdown (`Vis X% | Vic Y% | Geo Z%`) and distance in km.
+1. **Top Bar & Theme Controls**:
+   - Flat header with Brand mark, Theme Toggle (`#themeToggle`, persistent light/dark), and "System" drawer trigger button (`#drawerOpen`).
+2. **System Slide-Over Drawer** (`#systemDrawer`):
+   - Accessible modal drawer (`role="dialog" aria-modal="true"`) displaying live vector index statistics, device, OpenCLIP encoder, and dataset details fetched via `GET /api/info`.
+   - Focus trap and Escape key handler with focus restoration to the trigger button.
+3. **Query Section & Progressive Disclosure**:
+   - Roving tabindex tablist for Image Search and Text Search (`#tabImageBtn`, `#tabTextBtn`).
+   - Image drag-and-drop / clipboard upload with preview (search requires explicit click of "Search landmark").
+   - Native `<details>` elements for progressive disclosure: *Search options* (algorithm, top-k, probes/depth), *Execution latency breakdown*, and *Evidence details*.
+4. **Location Intelligence & Reference Atlas**:
+   - Google Maps iframe pin embedded in a dedicated map container.
+   - Reference photo gallery with horizontal carousel navigation controls (`#galleryPrev`, `#galleryNext`).
+5. **Paginated Matches Grid & Accessible Navigation**:
+   - Paginated display (`MATCHES_PER_PAGE = 6`) with previous/next controls, numbered page buttons, and dynamic announcement live region (`#srStatus`).
+   - Cards display rank badge, local thumbnail image (`/api/image/...`), fused score bar, consensus & coordinate-supported tags, and collapsible match metadata details.
 
 ### Standing UI Constraints
-* **Embedded Maps Only**: Do NOT replace the on-page Google Maps `<iframe>` with external redirect links. The pin must remain rendered in place.
-* **Cache-Busting Requirement**: Whenever you edit `app.js` or `style.css`, bump the version query parameter in `index.html` (e.g. `<script src="/static/app.js?v=2.8"></script>`) so browsers do not serve stale cached code.
-* **Preserve Zero-LLM Test Rule**: When testing UI interactions or API endpoints, use cached queries or text search rather than repeatedly triggering the live Gemini API.
-* **Fast Startup**: Keep `ivfpq` as the default index selection so local testing runs without loading the 2.8 GB HNSW graph unless specifically evaluating HNSW/Ensemble.
+* **Embedded Maps Only**: The on-page Google Maps `<iframe>` must remain embedded in the card; no external link redirects.
+* **Cache-Busting Requirement**: Whenever you edit `app.js` or `style.css`, bump the version parameter in `index.html` (currently `?v=4.0`).
+* **Preserve Zero-LLM Test Rule**: Use cached queries or text search rather than triggering live Gemini API repeatedly.
+* **Preserve Security Hardening**: All user/API-supplied fields must pass through `escapeHtml()`, and URLs through `safeHttpUrl()`.
+
 
 
 ---

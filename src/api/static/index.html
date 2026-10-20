@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#fff7ed" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1c1714" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#001e2b" media="(prefers-color-scheme: dark)">
   <title>Landmark Lens — GLDv2 Visual Landmark Search</title>
 
   <!-- Set the theme before first paint to avoid a flash of the wrong mode -->
@@ -22,297 +22,292 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=4.0">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="header-brand">
-        <div class="brand-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-6h4v6"/>
           </svg>
-        </div>
-        <div>
-          <h1>Landmark Lens</h1>
-          <p class="subtitle">Find any landmark from a photo or a phrase — across 5.05M images, with OpenCLIP &amp; multi-index fusion.</p>
-        </div>
+        </span>
+        <span class="brand-name">Landmark&nbsp;Lens</span>
       </div>
 
-      <div class="header-aside">
-        <div class="system-pills" id="systemPills">
-          <div class="pill pill-success">
-            <span class="pill-dot" aria-hidden="true"></span>
-            <span id="pillVectors">5,052,992 Vectors</span>
-          </div>
-          <div class="pill">
-            <span>Model: <strong>OpenCLIP ViT-B-32</strong></span>
-          </div>
-          <div class="pill">
-            <span id="pillDevice">Device: <strong>Auto</strong></span>
-          </div>
-        </div>
+      <div class="topbar-actions">
+        <button type="button" class="ghost-btn" id="sysBtn" aria-expanded="false" aria-controls="sysDrawer" aria-label="System">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>
+          </svg>
+          <span>System</span>
+        </button>
 
-        <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Switch to dark mode">
-          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <button type="button" class="ghost-btn icon-only" id="themeToggle" aria-pressed="false" aria-label="Switch to dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
             <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
           </svg>
-          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
           </svg>
         </button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Query Panel -->
-    <main class="search-panel">
-      <!-- Search Mode Tabs -->
-      <div class="tab-group" role="tablist" aria-label="Search mode">
-        <button class="tab-btn active" id="tabImageBtn" data-target="imageTab" role="tab" aria-selected="true" aria-controls="imageTab">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-          Search by image
-        </button>
-        <button class="tab-btn" id="tabTextBtn" data-target="textTab" role="tab" aria-selected="false" aria-controls="textTab">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Search by text
-        </button>
+  <!-- ===== System drawer (progressive disclosure of index/runtime facts) ===== -->
+  <div class="drawer-backdrop" id="sysBackdrop" hidden></div>
+  <aside class="drawer" id="sysDrawer" role="dialog" aria-modal="true" aria-labelledby="sysDrawerTitle" hidden>
+    <div class="drawer-head">
+      <h2 id="sysDrawerTitle">System</h2>
+      <button type="button" class="ghost-btn icon-only" id="sysClose" aria-label="Close system panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <dl class="spec-list">
+      <div class="spec-row">
+        <dt>Indexed vectors</dt>
+        <dd id="pillVectors">5,052,992</dd>
       </div>
+      <div class="spec-row">
+        <dt>Encoder</dt>
+        <dd>OpenCLIP ViT-B-32</dd>
+      </div>
+      <div class="spec-row">
+        <dt>Device</dt>
+        <dd id="pillDevice">Auto</dd>
+      </div>
+      <div class="spec-row">
+        <dt>Dataset</dt>
+        <dd>Google Landmarks v2</dd>
+      </div>
+    </dl>
+    <p class="drawer-note">Retrieval runs over a FAISS index with optional hybrid fusion across IVF-PQ and HNSW-PQ.</p>
+  </aside>
 
-      <!-- Tab Content: Image Upload -->
-      <section class="tab-content active" id="imageTab" role="tabpanel" aria-labelledby="tabImageBtn">
-        <div class="dropzone" id="dropzone">
-          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
-          <div class="dropzone-empty" id="dropzoneEmpty">
-            <div class="upload-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V8a1.5 1.5 0 0 0-1.5-1.5H16z"/><circle cx="12" cy="13" r="3.5"/>
-              </svg>
-            </div>
-            <h3>Drop a landmark photo here</h3>
-            <p>or <button type="button" class="link-btn" id="browseBtn">browse your files</button> &bull; paste from clipboard (Cmd+V / Ctrl+V)</p>
-            <span class="format-note">JPG, PNG or WEBP, up to 25 MB</span>
-          </div>
+  <main id="main">
+    <div class="shell">
 
-          <div class="dropzone-preview" id="dropzonePreview" style="display:none">
-            <img id="imagePreview" alt="Preview of the photo you are searching with">
-            <div class="preview-meta">
-              <span id="previewName" class="file-name">filename.jpg</span>
-              <span id="previewSize" class="file-size">1.2 MB</span>
-              <button type="button" class="btn btn-secondary btn-sm" id="removeImageBtn">Remove photo</button>
-            </div>
-          </div>
+      <!-- ===== Search ===== -->
+      <section class="search-block" aria-labelledby="searchHeading">
+        <h1 id="searchHeading">Identify any landmark</h1>
+        <p class="lede">Search 5.05M Google Landmarks images by photo or description.</p>
+
+        <div class="tabs" role="tablist" aria-label="Search mode">
+          <button class="tab active" id="tabImageBtn" data-target="imageTab" role="tab" aria-selected="true" aria-controls="imageTab" tabindex="0">By image</button>
+          <button class="tab" id="tabTextBtn" data-target="textTab" role="tab" aria-selected="false" aria-controls="textTab" tabindex="-1">By text</button>
         </div>
-      </section>
 
-      <!-- Tab Content: Text Prompt -->
-      <section class="tab-content" id="textTab" role="tabpanel" aria-labelledby="tabTextBtn">
-        <div class="text-input-wrap">
+        <!-- Image panel -->
+        <section class="panel active" id="imageTab" role="tabpanel" aria-labelledby="tabImageBtn">
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden>
+            <div class="dropzone-empty" id="dropzoneEmpty">
+              <p class="dz-title">Drop a photo, or <button type="button" class="link-btn" id="browseBtn">browse files</button></p>
+              <p class="dz-hint">JPG, PNG or WEBP · up to 25&nbsp;MB · paste with Cmd/Ctrl+V</p>
+            </div>
+            <div class="dropzone-preview" id="dropzonePreview" hidden>
+              <img id="imagePreview" alt="Preview of the photo you are searching with">
+              <div class="preview-meta">
+                <span id="previewName" class="file-name">filename.jpg</span>
+                <span id="previewSize" class="file-size mono">1.2 MB</span>
+                <button type="button" class="text-btn" id="removeImageBtn">Remove</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Text panel -->
+        <section class="panel" id="textTab" role="tabpanel" aria-labelledby="tabTextBtn" hidden>
           <label for="textQueryInput" class="sr-only">Describe a landmark</label>
-          <input type="text" id="textQueryInput" class="text-query-input" placeholder="e.g. Eiffel Tower in Paris, Colosseum in Rome, Taj Mahal..." autocomplete="off">
-          <button type="button" class="btn-clear" id="clearTextBtn" style="display:none" aria-label="Clear the search text">&times;</button>
-        </div>
+          <div class="field">
+            <input type="text" id="textQueryInput" class="input" placeholder="Eiffel Tower in Paris" autocomplete="off">
+            <button type="button" class="clear-btn" id="clearTextBtn" hidden aria-label="Clear the search text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="chips">
+            <button type="button" class="chip-btn" data-query="Eiffel Tower in Paris">Eiffel Tower</button>
+            <button type="button" class="chip-btn" data-query="Taj Mahal in India">Taj Mahal</button>
+            <button type="button" class="chip-btn" data-query="Colosseum in Rome">Colosseum</button>
+            <button type="button" class="chip-btn" data-query="Golden Gate Bridge in San Francisco">Golden Gate</button>
+            <button type="button" class="chip-btn" data-query="Sydney Opera House">Sydney Opera House</button>
+          </div>
+        </section>
 
-        <!-- Quick Sample Chips -->
-        <div class="sample-chips">
-          <span class="chips-label">Try one:</span>
-          <button type="button" class="chip-btn" data-query="Eiffel Tower in Paris">Eiffel Tower</button>
-          <button type="button" class="chip-btn" data-query="Taj Mahal in India">Taj Mahal</button>
-          <button type="button" class="chip-btn" data-query="Colosseum in Rome">Colosseum</button>
-          <button type="button" class="chip-btn" data-query="Golden Gate Bridge in San Francisco">Golden Gate</button>
-          <button type="button" class="chip-btn" data-query="Sydney Opera House">Sydney Opera House</button>
-        </div>
-      </section>
-
-      <!-- Search Controls Bar -->
-      <div class="controls-bar">
-        <div class="control-group">
-          <label for="indexTypeSelect">Algorithm</label>
-          <select id="indexTypeSelect" class="form-select">
-            <option value="ivfpq" selected>IVF-PQ (Inverted File)</option>
-            <option value="hnswpq">HNSW-PQ (Graph + PQ)</option>
-            <option value="ensemble">Ensemble (Hybrid: IVF + HNSW)</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label for="topKSelect">Results</label>
-          <select id="topKSelect" class="form-select">
-            <option value="5">5 matches</option>
-            <option value="10" selected>10 matches</option>
-            <option value="20">20 matches</option>
-          </select>
-        </div>
-
-        <div class="control-group" id="tuningParamGroup">
-          <label for="tuningParamSelect" id="tuningParamLabel">Voronoi probes (nprobe)</label>
-          <select id="tuningParamSelect" class="form-select">
-            <option value="16">16 (Fastest)</option>
-            <option value="32">32 (Balanced)</option>
-            <option value="64" selected>64 (High Recall)</option>
-            <option value="128">128 (Max Precision)</option>
-          </select>
-        </div>
-
-        <div class="action-wrap">
-          <button type="button" id="searchSubmitBtn" class="btn btn-primary">
-            <span class="btn-spinner" style="display:none" aria-hidden="true"></span>
-            <span class="btn-text">Find this landmark</span>
+        <div class="search-actions">
+          <button type="button" id="searchSubmitBtn" class="btn-primary">
+            <span class="btn-spinner" hidden aria-hidden="true"></span>
+            <span class="btn-text">Search</span>
           </button>
         </div>
-      </div>
-    </main>
 
-    <!-- Error Banner -->
-    <div id="errorBanner" class="error-banner" role="alert" aria-live="assertive" style="display:none">
-      <span class="error-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Advanced controls hidden until asked for -->
+        <details class="disclosure" id="optionsDisclosure">
+          <summary>
+            <span class="summary-label">Search options</span>
+            <span class="summary-value mono" id="optionsSummary">IVF-PQ · 10 results</span>
+          </summary>
+          <div class="disclosure-body options-grid">
+            <div class="control">
+              <label for="indexTypeSelect">Algorithm</label>
+              <select id="indexTypeSelect" class="select">
+                <option value="ivfpq" selected>IVF-PQ (Inverted File)</option>
+                <option value="hnswpq">HNSW-PQ (Graph + PQ)</option>
+                <option value="ensemble">Ensemble (IVF + HNSW)</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="topKSelect">Results</label>
+              <select id="topKSelect" class="select">
+                <option value="5">5 matches</option>
+                <option value="10" selected>10 matches</option>
+                <option value="20">20 matches</option>
+              </select>
+            </div>
+            <div class="control" id="tuningParamGroup">
+              <label for="tuningParamSelect" id="tuningParamLabel">Voronoi probes (nprobe)</label>
+              <select id="tuningParamSelect" class="select">
+                <option value="16">16 (Fastest)</option>
+                <option value="32">32 (Balanced)</option>
+                <option value="64" selected>64 (High Recall)</option>
+                <option value="128">128 (Max Precision)</option>
+              </select>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- ===== Error ===== -->
+      <div id="errorBanner" class="error-banner" role="alert" aria-live="assertive" hidden>
+        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/>
         </svg>
-      </span>
-      <span id="errorMessage" class="error-text">An error occurred during search.</span>
-      <button type="button" class="btn-close" id="closeErrorBtn" aria-label="Dismiss this error">&times;</button>
-    </div>
-
-    <!-- Results Section -->
-    <section class="results-section" id="resultsSection" style="display:none" aria-live="polite">
-      <!-- Latency & Query Metrics -->
-      <div class="metrics-bar">
-        <div class="metrics-left">
-          <span class="query-tag" id="queryDesc">Text: 'Eiffel Tower'</span>
-        </div>
-        <div class="metrics-right">
-          <div class="metric-pill">
-            <span class="metric-label">Embedding</span>
-            <strong id="metricEmbTime">0 ms</strong>
-          </div>
-          <div class="metric-pill">
-            <span class="metric-label">FAISS search</span>
-            <strong id="metricSearchTime">0 ms</strong>
-          </div>
-          <div class="metric-pill" id="metricFusionWrap" style="display:none">
-            <span class="metric-label">Hybrid fusion</span>
-            <strong id="metricFusionTime">0 ms</strong>
-          </div>
-          <div class="metric-pill metric-highlight">
-            <span class="metric-label">Total</span>
-            <strong id="metricTotalTime">0 ms</strong>
-          </div>
-        </div>
+        <span id="errorMessage" class="error-text">An error occurred during search.</span>
+        <button type="button" class="ghost-btn icon-only" id="closeErrorBtn" aria-label="Dismiss this error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <!-- Top Identified Landmark (Similarity-Weighted Voting) -->
-      <div class="top-candidate-card" id="topCandidateCard">
-        <div class="candidate-header">
-          <div class="candidate-badge">Top identified landmark</div>
-          <span class="confidence-tag" id="candMargin">Lead: +2.28 over next candidate</span>
-        </div>
-        <div class="candidate-body">
-          <h2 id="candName" class="candidate-title">Eiffel Tower</h2>
-          <div class="candidate-meta">
-            <span>Landmark ID: <strong id="candId">47378</strong></span>
-            <span>Split: <strong id="candSplit">train</strong></span>
-            <span>Evidence total: <strong id="candScore">2.6056</strong></span>
-            <span>Supporting matches: <strong id="candMatches">8 images</strong></span>
-            <span id="candHierarchyWrap" style="display:none">Type: <span class="badge" id="candHierarchy">tower</span></span>
-          </div>
-          <div class="candidate-actions" id="candActions">
-            <a id="candWikiBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
-              View on Wikimedia Commons
-            </a>
-          </div>
-        </div>
-      </div>
+      <!-- ===== Results ===== -->
+      <section class="results" id="resultsSection" hidden>
 
-      <!-- AI Location Intelligence (Gemini + Geocoding) -->
-      <div class="location-intel-card" id="locationIntelCard" style="display:none">
-        <div class="intel-header">
-          <div class="intel-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 16.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>
-            </svg>
-            AI location intelligence
-          </div>
-          <span class="intel-geotag" id="locGeoTag">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 21s7-5.2 7-10.5A7 7 0 0 0 5 10.5C5 15.8 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.5"/>
-            </svg>
-            <span id="locGeoText">Moscow, Russia</span>
-          </span>
+        <!-- Query + latency strip -->
+        <div class="result-strip">
+          <span class="query-tag mono" id="queryDesc">Text: 'Eiffel Tower'</span>
+          <details class="disclosure inline-disclosure">
+            <summary>
+              <span class="summary-label">Latency</span>
+              <span class="summary-value mono" id="metricTotalTime">0 ms</span>
+            </summary>
+            <div class="disclosure-body">
+              <dl class="spec-list compact">
+                <div class="spec-row"><dt>Embedding</dt><dd class="mono" id="metricEmbTime">0 ms</dd></div>
+                <div class="spec-row"><dt>FAISS search</dt><dd class="mono" id="metricSearchTime">0 ms</dd></div>
+                <div class="spec-row" id="metricFusionWrap" hidden><dt>Hybrid fusion</dt><dd class="mono" id="metricFusionTime">0 ms</dd></div>
+              </dl>
+            </div>
+          </details>
         </div>
 
-        <div class="intel-body-grid">
-          <!-- Left: Landmark details + reference atlas -->
+        <!-- Identified landmark -->
+        <section class="identified" id="topCandidateCard">
+          <span class="kicker">Identified landmark</span>
+          <h2 id="candName">Eiffel Tower</h2>
+          <div class="identified-row">
+            <span class="confidence mono" id="candMargin">Lead +2.28</span>
+            <span class="tag" id="candHierarchyWrap" hidden><span id="candHierarchy">tower</span></span>
+            <a id="candWikiBtn" href="#" target="_blank" rel="noopener noreferrer" class="text-link">Wikimedia Commons&nbsp;↗</a>
+          </div>
+
+          <details class="disclosure">
+            <summary><span class="summary-label">Evidence</span></summary>
+            <div class="disclosure-body">
+              <dl class="spec-list compact">
+                <div class="spec-row"><dt>Landmark ID</dt><dd class="mono" id="candId">47378</dd></div>
+                <div class="spec-row"><dt>Split</dt><dd class="mono" id="candSplit">train</dd></div>
+                <div class="spec-row"><dt>Evidence total</dt><dd class="mono" id="candScore">2.6056</dd></div>
+                <div class="spec-row"><dt>Supporting matches</dt><dd class="mono" id="candMatches">8 images</dd></div>
+              </dl>
+            </div>
+          </details>
+        </section>
+
+        <!-- Location intelligence -->
+        <section class="intel" id="locationIntelCard" hidden>
           <div class="intel-main">
-            <h2 id="locProminentName" class="intel-title">Saint Basil's Cathedral</h2>
-            <div id="locSpecificWrap" class="intel-specific-wrap" style="display:none">
-              <span class="intel-specific-label">Detected subject:</span>
-              <span id="locSpecificName" class="intel-specific-badge">Monument to Minin and Pozharsky</span>
-            </div>
-            <p id="locSummary" class="intel-summary">
-              Located on Moscow's Red Square, Saint Basil's Cathedral is world-renowned for its colorful onion domes.
+            <span class="kicker">Location intelligence</span>
+            <h3 id="locProminentName">Saint Basil's Cathedral</h3>
+            <p class="geo-line">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 21s7-5.2 7-10.5A7 7 0 0 0 5 10.5C5 15.8 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.5"/>
+              </svg>
+              <span id="locGeoText">Moscow, Russia</span>
             </p>
+            <p id="locSpecificWrap" class="detected" hidden>Detected subject: <span id="locSpecificName">Monument to Minin and Pozharsky</span></p>
+            <p id="locSummary" class="summary-text">Located on Moscow's Red Square.</p>
 
-            <section class="reference-evidence-card" id="refGallerySection" aria-labelledby="referenceGalleryTitle">
-              <div class="reference-evidence-header">
-                <div>
-                  <span class="evidence-kicker">Reference atlas</span>
-                  <h4 id="referenceGalleryTitle">Canonical views from the web</h4>
-                </div>
+            <details class="disclosure" id="refGallerySection">
+              <summary>
+                <span class="summary-label">Reference photos</span>
+              </summary>
+              <div class="disclosure-body">
                 <div class="gallery-controls">
-                  <button class="gallery-scroll-button" id="galleryScrollPrev" type="button" aria-label="Show previous reference photos">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  <button class="ghost-btn icon-only" id="galleryScrollPrev" type="button" aria-label="Show previous reference photos">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                   </button>
-                  <button class="gallery-scroll-button" id="galleryScrollNext" type="button" aria-label="Show next reference photos">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                  <button class="ghost-btn icon-only" id="galleryScrollNext" type="button" aria-label="Show next reference photos">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                   </button>
                 </div>
+                <div class="ref-scroller" id="refGalleryGrid" tabindex="0" role="group" aria-label="Canonical landmark reference photos"></div>
               </div>
-              <div class="ref-gallery-scroll-wrap" id="refGalleryGrid" tabindex="0" role="group" aria-label="Scrollable canonical landmark reference photos">
-                <!-- Horizontally injected via app.js -->
-              </div>
-            </section>
+            </details>
           </div>
 
-          <!-- Right: Map -->
-          <aside class="map-evidence-card">
-            <div class="map-header">
-              <div>
-                <span class="evidence-kicker">Place context</span>
-                <span class="map-label">Map position</span>
-              </div>
+          <aside class="intel-map">
+            <span class="kicker">Map</span>
+            <div class="map-frame">
+              <iframe id="gmapsIframe" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="" title="Map showing the identified landmark location"></iframe>
             </div>
-            <div id="mapContainer" class="map-container">
-              <iframe
-                id="gmapsIframe"
-                class="gmaps-iframe"
-                loading="lazy"
-                allowfullscreen
-                referrerpolicy="no-referrer-when-downgrade"
-                src=""
-                title="Map showing the identified landmark location"
-              ></iframe>
-            </div>
-            <div class="coords-display" id="coordsDisplay">55.7525° N, 37.6231° E</div>
+            <p class="coords mono" id="coordsDisplay">55.7525° N, 37.6231° E</p>
           </aside>
-        </div>
-      </div>
+        </section>
 
-      <!-- Retrieved Nearest Neighbors -->
-      <div>
-        <div class="matches-header">
-          <h3>Closest visual matches</h3>
-          <span class="matches-count" id="matchesCount">10 matches retrieved</span>
-        </div>
+        <!-- Visual matches (paginated) -->
+        <section class="matches" aria-labelledby="matchesHeading">
+          <div class="matches-head">
+            <h3 id="matchesHeading">Visual matches</h3>
+            <span class="matches-count mono" id="matchesCount">10 retrieved</span>
+          </div>
 
-        <div class="matches-grid" id="matchesGrid">
-          <!-- Match tiles dynamically injected by app.js -->
-        </div>
-      </div>
-    </section>
-  </div>
+          <div class="matches-grid" id="matchesGrid"></div>
 
-  <script src="/static/app.js?v=3.1"></script>
+          <nav class="pagination" id="matchesPagination" aria-label="Visual match pages" hidden>
+            <button type="button" class="page-btn" id="pagePrev" aria-label="Previous page">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+              <span>Previous</span>
+            </button>
+            <div class="page-list" id="pageList"></div>
+            <button type="button" class="page-btn" id="pageNext" aria-label="Next page">
+              <span>Next</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </nav>
+          <p class="page-status mono" id="pageStatus"></p>
+        </section>
+      </section>
+
+      <!-- Single polite live region: one announcement per user action -->
+      <p id="srStatus" class="sr-only" role="status" aria-live="polite"></p>
+    </div>
+  </main>
+
+  <script src="/static/app.js?v=4.0"></script>
 </body>
 </html>
