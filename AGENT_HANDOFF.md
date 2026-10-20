@@ -191,7 +191,8 @@ visual-search-engine-gldv2/
   - Removed deprecated `alpha_qe: false` request payloads from client search calls.
   - Synchronized vector counts across header pill and HNSW dropdown to accurately display `5.05M` / `5,052,992 Vectors`.
   - Cleaned dead DOM selector `gmapsLink`.
-  - Bumped script cache-busting parameter to `app.js?v=3.0`.
+  - Disabled auto-search on image upload (search triggers exclusively on user click of the search button).
+  - Bumped script cache-busting parameter to `app.js?v=3.1`.
 
 ### E. Accuracy, Security, and Memory-Safe Runtime (Current)
 * **Scoped OpenMP Threading**: Implemented [`src/index/threading_utils.py`](file:///Users/yashgarg/Documents/visual-search-engine-gldv2/src/index/threading_utils.py) context managers (`faiss_threads` and `faiss_single_thread_on_macos`) to prevent global thread contention and permanently pinning process OpenMP state.

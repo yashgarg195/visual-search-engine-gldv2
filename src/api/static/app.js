@@ -246,8 +246,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dropzoneEmpty.style.display = "none";
       dropzonePreview.style.display = "flex";
       hideError();
-      // Auto-trigger visual landmark search
-      triggerSearch();
     };
     reader.readAsDataURL(file);
   }
