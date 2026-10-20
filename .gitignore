@@ -49,8 +49,4 @@ htmlcov/
 # Runtime caches and visual outputs
 data/cache/
 
-# Agent handoff documents
-*HANDOFF*.md
-*handoff*.md
-
 outputs/visualizations/
