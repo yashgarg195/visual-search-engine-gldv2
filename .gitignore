@@ -50,3 +50,9 @@ htmlcov/
 data/cache/
 
 outputs/visualizations/
+
+# Agent handoffs
+AGENT_HANDOFF.md
+*HANDOFF*.md
+*handoff*.md
+
